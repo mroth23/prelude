@@ -1,4 +1,4 @@
- (menu-bar-mode t)
+(setq menu-bar-mode 1)
 
 ;; scroll one line at a time (less "jumpy" than defaults)
 ;; from smooth-scrolling.el
