@@ -56,7 +56,7 @@
         (if (display-graphic-p)
             (modify-frame-parameters frame '((menu-bar-lines . 1)))
           (modify-frame-parameters frame '((menu-bar-lines . 0)))))
-    (menu-bar-mode -1)))
+    (menu-bar-mode 1)))
 
 ;; run now
 (prelude-frame-config (selected-frame))
