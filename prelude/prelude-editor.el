@@ -85,7 +85,7 @@
 (setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
 
 ;; saveplace remembers your location in a file when saving files
-(setq save-place-file (concat prelude-savefile-dir "saveplace"))
+(setq save-place-file (expand-file-name "saveplace" prelude-savefile-dir))
 ;; activate it for all buffers
 (setq-default save-place t)
 (require 'saveplace)
@@ -97,11 +97,11 @@
       ;; save every minute
       savehist-autosave-interval 60
       ;; keep the home clean
-      savehist-file (concat prelude-savefile-dir "savehist"))
+      savehist-file (expand-file-name "savehist" prelude-savefile-dir))
 (savehist-mode t)
 
 ;; save recent files
-(setq recentf-save-file (concat prelude-savefile-dir "recentf")
+(setq recentf-save-file (expand-file-name "recentf" prelude-savefile-dir)
       recentf-max-saved-items 200
       recentf-max-menu-items 15)
 (recentf-mode t)
@@ -143,6 +143,23 @@
 (require 'volatile-highlights)
 (volatile-highlights-mode t)
 
+;; note - this should be after volatile-highlights is required
+;; add the ability to copy and cut the current line, without marking it
+(defadvice kill-ring-save (before slick-copy activate compile)
+  "When called interactively with no active region, copy a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (message "Copied line")
+     (list (line-beginning-position)
+           (line-beginning-position 2)))))
+
+(defadvice kill-region (before slick-cut activate compile)
+  "When called interactively with no active region, kill a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (list (line-beginning-position)
+           (line-beginning-position 2)))))
+
 ;; tramp, for sudo access
 (require 'tramp)
 ;; keep in mind known issues with zsh - see emacs wiki
@@ -155,7 +172,7 @@
       ido-create-new-buffer 'always
       ido-use-filename-at-point 'guess
       ido-max-prospects 10
-      ido-save-directory-list-file (concat prelude-savefile-dir "ido.hist")
+      ido-save-directory-list-file (expand-file-name "ido.hist" prelude-savefile-dir)
       ido-default-file-method 'selected-window)
 
 ;; auto-completion in minibuffer
@@ -168,13 +185,8 @@
       ispell-extra-args '("--sug-mode=ultra"))
 (autoload 'flyspell-mode "flyspell" "On-the-fly spelling checker." t)
 
-(defun prelude-turn-on-flyspell ()
-  "Force flyspell-mode on using a positive argument.  For use in hooks."
-  (interactive)
-  (flyspell-mode +1))
-
-(add-hook 'message-mode-hook 'prelude-turn-on-flyspell)
-(add-hook 'text-mode-hook 'prelude-turn-on-flyspell)
+(add-hook 'message-mode-hook 'flyspell-mode)
+(add-hook 'text-mode-hook 'flyspell-mode)
 
 ;; enable narrowing commands
 (put 'narrow-to-region 'disabled nil)
@@ -188,19 +200,17 @@
 (require 'expand-region)
 
 ;; bookmarks
-(setq bookmark-default-file (concat prelude-savefile-dir "bookmarks")
+(setq bookmark-default-file (expand-file-name "bookmarks" prelude-savefile-dir)
       bookmark-save-flag 1)
-
-;; enabled auto-fill mode in text-mode and all related modes
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; load yasnippet
 (require 'yasnippet)
-(add-to-list 'yas/snippet-dirs prelude-snippets-dir)
-(yas/global-mode 1)
+(add-to-list 'yas-snippet-dirs prelude-snippets-dir)
+(yas-global-mode 1)
 
 ;; projectile is a project management mode
 (require 'projectile)
+(setq projectile-cache-file (expand-file-name  "projectile.cache" prelude-savefile-dir))
 (projectile-global-mode t)
 
 (require 'helm-misc)
@@ -209,16 +219,19 @@
 (defun helm-prelude ()
   "Preconfigured `helm'."
   (interactive)
-  (if (projectile-get-project-root)
-      ;; add project files and buffers when in project
-      (helm-other-buffer '(helm-c-source-projectile-files-list
-                           helm-c-source-projectile-buffers-list
-                           helm-c-source-buffers-list
-                           helm-c-source-recentf
-                           helm-c-source-buffer-not-found)
-                         "*helm prelude*")
-    ;; otherwise fallback to helm-mini
-    (helm-mini)))
+  (condition-case nil
+    (if (projectile-project-root)
+        ;; add project files and buffers when in project
+        (helm-other-buffer '(helm-c-source-projectile-files-list
+                             helm-c-source-projectile-buffers-list
+                             helm-c-source-buffers-list
+                             helm-c-source-recentf
+                             helm-c-source-buffer-not-found)
+                           "*helm prelude*")
+      ;; otherwise fallback to helm-mini
+      (helm-mini))
+    ;; fall back to helm mini if an error occurs (usually in projectile-project-root)
+    (error (helm-mini))))
 
 ;; shorter aliases for ack-and-a-half commands
 (defalias 'ack 'ack-and-a-half)
@@ -267,7 +280,7 @@ indent yanked text (with prefix arg don't indent)."
     (yank-advised-indent-function (region-beginning) (region-end)))))
 
 ;; abbrev config
-(add-hook 'text-mode-hook 'prelude-turn-on-abbrev)
+(add-hook 'text-mode-hook 'abbrev-mode)
 
 ;; make a shell script executable automatically on save
 (add-hook 'after-save-hook
@@ -278,10 +291,10 @@ indent yanked text (with prefix arg don't indent)."
 (setq reb-re-syntax 'string)
 
 (require 'eshell)
-(setq eshell-directory-name (concat prelude-savefile-dir "/eshell/"))
+(setq eshell-directory-name (expand-file-name "eshell" prelude-savefile-dir))
 
-(setq semanticdb-default-save-directory 
-      (concat prelude-savefile-dir "semanticdb"))
+(setq semanticdb-default-save-directory
+      (expand-file-name "semanticdb" prelude-savefile-dir))
 
 ;; enable Prelude's keybindings
 (prelude-global-mode t)
