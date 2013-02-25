@@ -1,2 +1,2 @@
-(setq c-default-style "k&r")
+(setq c-default-style "Gnu")
 (setq haskell-font-lock-symbols t)
