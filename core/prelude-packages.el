@@ -34,6 +34,7 @@
 ;;; Code:
 (require 'cl)
 (require 'package)
+
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
 ;; set package-user-dir to be relative to Prelude install path
@@ -41,13 +42,30 @@
 (package-initialize)
 
 (defvar prelude-packages
-  '(ace-jump-mode ack-and-a-half anzu dash diminish elisp-slime-nav
-    expand-region flx-ido flycheck gist
-    git-commit-mode gitconfig-mode gitignore-mode grizzl
-    guru-mode helm helm-projectile ido-ubiquitous
-    key-chord magit move-text rainbow-mode
-    smartparens smex undo-tree
-    volatile-highlights zenburn-theme)
+  '(ace-jump-mode
+    ace-jump-buffer
+    ack-and-a-half
+    anzu
+    browse-kill-ring
+    dash
+    diminish
+    elisp-slime-nav
+    epl
+    expand-region
+    flycheck
+    gist
+    gitconfig-mode
+    gitignore-mode
+    grizzl
+    guru-mode
+    projectile
+    magit
+    move-text
+    rainbow-mode
+    smartparens
+    undo-tree
+    volatile-highlights
+    zenburn-theme)
   "A list of packages to ensure are installed at launch.")
 
 (defun prelude-packages-installed-p ()
@@ -66,7 +84,7 @@
 Missing packages are installed automatically."
   (mapc #'prelude-require-package packages))
 
-(defalias 'prelude-ensure-module-deps 'prelude-require-packages)
+(define-obsolete-function-alias 'prelude-ensure-module-deps 'prelude-require-packages)
 
 (defun prelude-install-packages ()
   "Install all packages listed in `prelude-packages'."

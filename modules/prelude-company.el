@@ -1,6 +1,6 @@
-;;; prelude-scala.el --- Emacs Prelude: scala-mode configuration.
+;;; prelude-company.el --- company-mode setup
 ;;
-;; Copyright © 2011-2013 Bozhidar Batsov
+;; Copyright © 2011-2014 Bozhidar Batsov
 ;;
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/prelude
@@ -11,7 +11,7 @@
 
 ;;; Commentary:
 
-;; Some basic support for the Scala programming language
+;; company-mode config.
 
 ;;; License:
 
@@ -31,17 +31,15 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
+(prelude-require-packages '(company))
 
-(require 'prelude-programming)
-(prelude-require-packages '(scala-mode2))
+(require 'company)
 
-(defun prelude-scala-mode-defaults ()
-  (subword-mode +1))
+(setq company-idle-delay 0.5)
+(setq company-tooltip-limit 10)
+(setq company-minimum-prefix-length 2)
 
-(setq prelude-scala-mode-hook 'prelude-scala-mode-defaults)
+(global-company-mode 1)
 
-(add-hook 'scala-mode-hook (lambda ()
-                             (run-hooks 'prelude-scala-mode-hook)))
-(provide 'prelude-scala)
-
-;;; prelude-scala.el ends here
+(provide 'prelude-company)
+;;; prelude-company.el ends here

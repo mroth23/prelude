@@ -1,6 +1,6 @@
-;;; prelude-scala.el --- Emacs Prelude: scala-mode configuration.
+;;; prelude-shell.el --- Emacs Prelude: sh-mode configuration.
 ;;
-;; Copyright © 2011-2013 Bozhidar Batsov
+;; Copyright © 2011-2014 Bozhidar Batsov
 ;;
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/prelude
@@ -11,7 +11,7 @@
 
 ;;; Commentary:
 
-;; Some basic support for the Scala programming language
+;; Some basic configuration for cc-mode and the modes derived from it.
 
 ;;; License:
 
@@ -32,16 +32,20 @@
 
 ;;; Code:
 
-(require 'prelude-programming)
-(prelude-require-packages '(scala-mode2))
+(require 'sh-script)
 
-(defun prelude-scala-mode-defaults ()
-  (subword-mode +1))
+;; recognize pretzo files as zsh scripts
+(defvar prelude-pretzo-files '("zlogin" "zlogin" "zlogout" "zpretzorc" "zprofile" "zshenv" "zshrc"))
 
-(setq prelude-scala-mode-hook 'prelude-scala-mode-defaults)
+(mapc (lambda (file)
+        (add-to-list 'auto-mode-alist `(,(format "\\%s\\'" file) . sh-mode)))
+      prelude-pretzo-files)
 
-(add-hook 'scala-mode-hook (lambda ()
-                             (run-hooks 'prelude-scala-mode-hook)))
-(provide 'prelude-scala)
+(add-hook 'sh-mode-hook
+          (lambda ()
+            (if (and buffer-file-name
+                     (member (file-name-nondirectory buffer-file-name) prelude-pretzo-files))
+                (sh-set-shell "zsh"))))
 
-;;; prelude-scala.el ends here
+(provide 'prelude-shell)
+;;; prelude-shell.el ends here
