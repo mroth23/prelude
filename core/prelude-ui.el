@@ -83,6 +83,5 @@
 
 
 (desktop-save-mode -1)
-
 (provide 'prelude-ui)
 ;;; prelude-ui.el ends here
