@@ -2,7 +2,7 @@
 
 (require 'cl)
 
-(set-face-attribute 'default nil :height 110)
+(set-face-attribute 'default nil :height 100)
 
 (defun personal-font-existsp (font)
   "Check to see if the named FONT is available."
