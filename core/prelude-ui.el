@@ -75,7 +75,7 @@
                                           "%b"))))
 
 ;; use zenburn as the default theme
-(load-theme 'zenburn t)
+(load-theme prelude-theme t)
 
 (require 'desktop)
 (setq desktop-path (list prelude-savefile-dir))

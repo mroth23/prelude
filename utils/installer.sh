@@ -78,7 +78,7 @@ usage() {
     printf "  -s, --source [url] \t \t Clone prelude from 'url'.\n"
     printf "  \t \t \t \t Defaults to 'https://github.com/bbatsov/prelude.git'.\n"
     printf "  -n, --no-bytecompile \t \t Skip the bytecompilation step of prelude.\n"
-    printf "  -i, --into \t \t \t Install Prelude into the existing configuration\n"
+    printf "  -i, --into \t \t \t Install Prelude into a subdirectory in the existing configuration\n"
     printf "  \t \t \t \t The default behavious is to install prelude into the existing\n"
     printf "  \t \t \t \t emacs configuration.\n"
     printf "  -h, --help \t \t \t Display this help and exit\n"
@@ -223,7 +223,7 @@ fi
 
 if [ -z "$PRELUDE_SKIP_BC" ];
 then
-    if which emacs 2>&1 > /dev/null
+    if which emacs > /dev/null 2>&1
     then
         printf " Bytecompiling Prelude.\n"
         if [ x$PRELUDE_VERBOSE != x ]

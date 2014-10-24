@@ -51,7 +51,6 @@
          (define-key map (kbd "C-c m") 'go-test-current-file)
          (define-key map (kbd "C-c .") 'go-test-current-test)
          (define-key map (kbd "C-c b") 'go-run))
-
        ;; Prefer goimports to gofmt if installed
        (let ((goimports (executable-find "goimports")))
          (when goimports

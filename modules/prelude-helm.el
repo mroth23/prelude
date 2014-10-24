@@ -1,6 +1,6 @@
 ;;; prelude-helm.el --- Helm setup
 ;;
-;; Copyright © 2011-2013 Bozhidar Batsov
+;; Copyright © 2011-2014 Bozhidar Batsov
 ;;
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/prelude
@@ -11,7 +11,8 @@
 
 ;;; Commentary:
 
-;; Some config for Helm.
+;; Some configuration for Helm following this guide:
+;; http://tuhdo.github.io/helm-intro.html
 
 ;;; License:
 
@@ -34,7 +35,7 @@
 
 (prelude-require-packages '(helm helm-projectile))
 
-(require 'helm-misc)
+(require 'helm-config)
 (require 'helm-projectile)
 
 (defun helm-prelude ()

@@ -36,6 +36,8 @@
   '(progn
      (prelude-require-packages '(rainbow-mode))
 
+     (setq css-indent-offset 2)
+     
      (defun prelude-css-mode-defaults ()
        (setq css-indent-offset 2)
        (rainbow-mode +1)
