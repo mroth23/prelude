@@ -6,7 +6,7 @@
 ;; Mark lines exceeding 100 columns.
 (setq whitespace-line-column 100)
 ;; Set whitespace style: cleanup empty lines / trailing whitespace, show whitespace characters.
-(setq whitespace-style '(empty trailing face lines-tail indentation::space tabs newline space-mark tab-mark newline-mark))
+(setq whitespace-style '(empty trailing face lines-tail indentation::space tabs newline tab-mark newline-mark))
 ;; Use spaces instead of tabs by default.
 (setq-default indent-tabs-mode nil)
 
