@@ -10,6 +10,9 @@
 ;; Use spaces instead of tabs by default.
 (setq-default indent-tabs-mode nil)
 
+
+(global-set-key [C-M-\\] 'clang-format-region)
+
 ;; Disable guru mode
 (setq prelude-guru nil)
 
