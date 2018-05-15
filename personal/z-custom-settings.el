@@ -24,4 +24,4 @@
 
 (key-chord-define-global "xf" 'iy-go-to-char)
 (key-chord-define-global "xd" 'iy-go-to-char-backward)
-(key-chord-define python-mode-map  ";;" "\C-e;")
+(key-chord-define-global ";;" "\C-e;")
