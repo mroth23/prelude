@@ -4,6 +4,7 @@
    dotenv-mode
    emms
    emms-mode-line-cycle
+   flycheck-clang-analyzer
    iy-go-to-char
    multiple-cursors
    nyan-mode

@@ -28,8 +28,9 @@
 ;; Use spaces instead of tabs by default.
 (setq-default indent-tabs-mode nil)
 
-
-(global-set-key [C-M-\\] 'clang-format-region)
+;; Use clang for formatting and flycheck in C/C++.
+(flycheck-clang-analyzer-setup)
+(global-set-key (kbd "C-c c f") 'clang-format-region)
 
 ;; Python
 ;; Set tab with to 4.
