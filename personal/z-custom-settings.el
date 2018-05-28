@@ -1,3 +1,21 @@
+;; Custom shortcut to open this file.
+(defun config-visit ()
+  (interactive)
+  (find-file "~/.emacs.d/personal/z-custom-settings.el"))
+
+(global-set-key (kbd "C-c C-e") 'config-visit)
+
+;; Keep desktop state between runs.
+(setq desktop-dirname             "~/.emacs.d/desktop/"
+      desktop-base-file-name      "emacs.desktop"
+      desktop-base-lock-name      "lock"
+      desktop-path                (list desktop-dirname)
+      desktop-save                t
+      desktop-files-not-to-save   "^$" ;reload tramp paths
+      desktop-load-locked-desktop nil
+      desktop-auto-save-timeout   30)
+(desktop-save-mode 1)
+
 ;; Configure Whitespace mode
 ;; Enable mode, and whitespace cleanup on save.
 (setq prelude-whitespace t)
