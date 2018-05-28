@@ -1,2 +1,13 @@
-(prelude-require-packages '(iy-go-to-char))
-
+(prelude-require-packages
+ '(cl-lib
+   dot-mode
+   dotenv-mode
+   emms
+   emms-mode-line-cycle
+   iy-go-to-char
+   multiple-cursors
+   nyan-mode
+   spacemacs-theme
+   swiper-helm
+   switch-window
+   virtualenvwrapper))
