@@ -122,7 +122,7 @@
 (emms-mode-line-cycle 1)
 
 ;; Nyan cat mode
-(nyan-mode 1)
 (setq nyan-animate-nyancat t)
 (setq nyan-wavy-trail t)
 (setq nyan-bar-length 15)
+(nyan-mode 1)
