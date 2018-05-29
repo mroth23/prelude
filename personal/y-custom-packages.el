@@ -1,5 +1,8 @@
 (prelude-require-packages
- '(cl-lib
+ '(company-c-headers
+   company-irony
+   company-jedi
+   cl-lib
    dot-mode
    dotenv-mode
    emms
@@ -7,8 +10,10 @@
    flycheck-clang-analyzer
    iy-go-to-char
    multiple-cursors
+   nlinum
    nyan-mode
    spacemacs-theme
+   smart-mode-line-powerline-theme
    swiper-helm
    switch-window
    virtualenvwrapper))

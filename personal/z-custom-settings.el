@@ -3,7 +3,7 @@
   (interactive)
   (find-file "~/.emacs.d/personal/z-custom-settings.el"))
 
-(global-set-key (kbd "C-c C-e") 'config-visit)
+(global-set-key (kbd "C-c v c") 'config-visit)
 
 ;; Keep desktop state between runs.
 (setq desktop-dirname             "~/.emacs.d/desktop/"
@@ -15,6 +15,30 @@
       desktop-load-locked-desktop nil
       desktop-auto-save-timeout   30)
 (desktop-save-mode 1)
+
+;; nlinum mode
+(setq nlinum-highlight-current-line t)
+(setq nlinum-format "%4d \u2502")
+
+;; Use this to have nlinum globally.
+;; (global-nlinum-mode 1)
+
+(defun nlinum-set-face-attribute ()
+  (set-face-attribute 'nlinum-current-line nil :background "gray20")
+  (set-face-attribute 'linum nil :background "gray30" :foreground "gray80"))
+
+(add-hook 'nlinum-mode-hook 'nlinum-set-face-attribute)
+(add-hook 'prog-mode-hook 'nlinum-mode)
+
+;; Mode line config
+(setq rm-blacklist
+       (format "^ \\(%s\\)$"
+               (mapconcat #'identity
+                          '("ARev.*" "EditorConfig.*" "Dot.*" "SP.*" "WK.*" "Pre.*" "Helm.*" "guru.*" "PgLn")
+                          "\\|")))
+
+(set-face-attribute 'sml/minor-modes nil :font "Menlo-10" :foreground "gray40")
+(add-to-list 'sml/replacer-regexp-list '("^~/projects/" ":PROJ:") t)
 
 ;; Configure Whitespace mode
 ;; Enable mode, and whitespace cleanup on save.
@@ -28,15 +52,77 @@
 ;; Use spaces instead of tabs by default.
 (setq-default indent-tabs-mode nil)
 
+;; Global company backends.
+(add-to-list 'company-backends 'company-dabbrev-code)
+(add-to-list 'company-backends 'company-yasnippet)
+(add-to-list 'company-backends 'company-files)
+
+;; Some C/C++ settings.
+;; yasnippet
+(add-hook 'c++-mode-hook 'yas-minor-mode)
+(add-hook 'c-mode-hook 'yas-minor-mode)
+
+;; company
+;; ctags
+(setq path-to-ctags "/usr/local/bin/ctags")
+
+(defun create-tags (dir-name)
+  "Create tags file."
+  (interactive "DDirectory: ")
+  (shell-command
+   (format "%s -f TAGS -R %s" path-to-ctags (directory-file-name dir-name))))
+
+(defadvice find-tag (around refresh-etags activate)
+  "Rerun etags and reload tags if tag not found and redo find-tag.
+   If buffer is modified, ask about save before running etags."
+  (let ((extension (file-name-extension (buffer-file-name))))
+    (condition-case err
+        ad-do-it
+      (error (and (buffer-modified-p)
+                  (not (ding))
+                  (y-or-n-p "Buffer is modified, save it? ")
+                  (save-buffer))
+             (er-refresh-etags extension)
+             ad-do-it))))
+
+(defun er-refresh-etags (&optional extension)
+  "Run etags on all peer files in current dir and reload them silently."
+  (interactive)
+  (shell-command (format "etags *.%s" (or extension "el")))
+  (let ((tags-revert-without-query t))  ; don't query, revert silently
+    (visit-tags-table default-directory nil)))
+
+
+(defun c-mode-company-init ()
+  (setq-local company-backends '((company-c-headers
+                                  company-dabbrev-code
+                                  company-irony
+                                  company-yasnippet
+                                  company-files
+                                  ))))
+
+(add-hook 'c-mode-hook 'c-mode-company-init)
+(add-hook 'c++-mode-hook 'c-mode-company-init)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'c++-mode-hook 'irony-mode)
+
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
 ;; Use clang for formatting and flycheck in C/C++.
 (flycheck-clang-analyzer-setup)
+
 (global-set-key (kbd "C-c c f") 'clang-format-region)
 
 ;; Python
+;; yasnippet
+(add-hook 'python-mode-hook 'yas-minor-mode)
+
 ;; Set tab with to 4.
 (add-hook 'python-mode-hook
           (lambda ()
             (setq-default tab-width 4)))
+
+(setq debug-on-message "deferred error.*")
 
 (key-chord-define-global "xf" 'iy-go-to-char)
 (key-chord-define-global "xd" 'iy-go-to-char-backward)
