@@ -32,3 +32,5 @@ games/
 smex-items
 .cache/
 anaconda-mode/
+.python-environments/
+irony/
