@@ -1,19 +1,16 @@
 (prelude-require-packages
- '(company-c-headers
-   company-irony
-   company-jedi
-   cl-lib
+ '(cl-lib
    dot-mode
    dotenv-mode
    emms
    emms-mode-line-cycle
+   fancy-battery
    flycheck-clang-analyzer
    iy-go-to-char
    multiple-cursors
    nlinum
    nyan-mode
-   spacemacs-theme
-   smart-mode-line-powerline-theme
    swiper-helm
    switch-window
-   virtualenvwrapper))
+   virtualenvwrapper
+   use-package))
