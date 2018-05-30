@@ -312,7 +312,20 @@ Rich presence for Discord.
   (add-hook 'c++-mode-hook 'yas-minor-mode)
   (add-hook 'c-mode-hook 'yas-minor-mode)
 
-  ;; company
+  ;; company + company-irony
+  (use-package company-irony
+    :ensure t
+    :config
+    (require 'company)
+    (add-to-list 'company-backends 'company-irony))
+
+  (use-package irony
+    :ensure t
+    :config
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
   ;; ctags
   (setq path-to-ctags "/usr/local/bin/ctags")
 
@@ -341,22 +354,6 @@ Rich presence for Discord.
     (shell-command (format "etags *.%s" (or extension "el")))
     (let ((tags-revert-without-query t))  ; don't query, revert silently
       (visit-tags-table default-directory nil)))
-
-
-  (defun c-mode-company-init ()
-    (setq-local company-backends '((company-c-headers
-                                    company-dabbrev-code
-                                    company-irony
-                                    company-yasnippet
-                                    company-files
-                                    ))))
-
-  (add-hook 'c-mode-hook 'c-mode-company-init)
-  (add-hook 'c++-mode-hook 'c-mode-company-init)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'c++-mode-hook 'irony-mode)
-
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
   ;; Use clang for formatting and flycheck in C/C++.
   (flycheck-clang-analyzer-setup)
