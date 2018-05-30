@@ -221,10 +221,18 @@
   :ensure t)
 (elcord-mode)
 
+(use-package yasnippet
+  :ensure t
+  :config
+  (use-package yasnippet-snippets
+    :ensure t)
+  (yas-reload-all))
+
+(add-hook 'prog-mode-hook 'yas-minor-mode)
+(add-hook 'latex-mode-hook 'yas-minor-mode)
+(add-hook 'org-mode-hook 'yas-minor-mode)
+
 ;; Some C/C++ settings.
-;; yasnippet
-(add-hook 'c++-mode-hook 'yas-minor-mode)
-(add-hook 'c-mode-hook 'yas-minor-mode)
 
 ;; company + company-irony
 (use-package company-irony
