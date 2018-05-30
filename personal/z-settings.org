@@ -297,6 +297,13 @@ Not currently in use while trying dashboard.
   (emms-playing-time 1)
   (emms-mode-line-cycle 1)
 #+END_SRC
+** elcord
+Rich presence for Discord.
+#+BEGIN_SRC emacs-lisp
+  (use-package elcord
+    :ensure t)
+  (elcord-mode)
+#+END_SRC
 * Major modes
 ** C/C++
 #+BEGIN_SRC emacs-lisp

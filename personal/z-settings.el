@@ -217,6 +217,9 @@
 (emms-playing-time 1)
 (emms-mode-line-cycle 1)
 
+(use-package elcord
+  :ensure t)
+
 ;; Some C/C++ settings.
 ;; yasnippet
 (add-hook 'c++-mode-hook 'yas-minor-mode)
