@@ -1,11 +1,23 @@
+(when (eq system-type 'darwin) ;; mac specific settings
+  (setq mac-option-modifier 'meta)
+  ;; (setq mac-right-option-modifier 'none)
+  (setq mac-command-modifier 'super)
+  (setq mac-function-modifier 'hyper)
+  (global-set-key [kp-delete] 'delete-char))
+
 (use-package dashboard
   :ensure t
   :config
     (dashboard-setup-startup-hook)
-    (setq dashboard-startup-banner "~/.emacs.d/img/dashLogo.png")
     (setq dashboard-items '((recents  . 5)
                             (projects . 5)))
     (setq dashboard-banner-logo-title ""))
+
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
+
+(pixel-scroll-mode 1)
+(scroll-bar-mode -1)
 
 ;; Custom shortcut to open this file.
 (defun config-visit ()
@@ -111,14 +123,22 @@
 (spaceline-toggle-minor-modes-off)
 
 (use-package company
-  :ensure t
-  :init
-  (add-hook 'after-init-hook 'global-company-mode))
+    :ensure t
+    :config
+    (setq company-minimum-prefix-length 3)
+    (setq company-idle-delay 0)
+    :init
+    (add-hook 'after-init-hook 'global-company-mode))
 
-(setq company-idle-delay 0)
-;;  (add-to-list 'company-backends 'company-dabbrev-code)
-;;  (add-to-list 'company-backends 'company-yasnippet)
-;;  (add-to-list 'company-backends 'company-files)
+(with-eval-after-load 'company
+  (define-key company-active-map (kbd "M-n") nil)
+  (define-key company-active-map (kbd "M-p") nil)
+  (define-key company-active-map (kbd "C-n") #'company-select-next)
+  (define-key company-active-map (kbd "C-p") #'company-select-previous))
+
+  ;; (add-to-list 'company-backends 'company-dabbrev-code)
+  ;; (add-to-list 'company-backends 'company-yasnippet)
+  ;; (add-to-list 'company-backends 'company-files)
 
 ;; (setq desktop-dirname             "~/.emacs.d/desktop/"
 ;;       desktop-base-file-name      "emacs.desktop"
@@ -167,6 +187,7 @@
 ;; Fuzzy matching everywhere
 (setq helm-mode-fuzzy-match t)
 (setq helm-completion-in-region-fuzzy-match t)
+;; For some reason this needs to be specified separately
 (setq helm-M-x-fuzzy-match t)
 
 ;; Create shortcut for things like the scratch buffer.
@@ -180,6 +201,14 @@
   :ensure t
   :init
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+(when window-system
+  (use-package pretty-mode
+    :ensure t
+    :config
+    (global-pretty-mode t)))
+
+(global-prettify-symbols-mode +1)
 
 (emms-all)
 (emms-default-players)
@@ -260,5 +289,6 @@
 (venv-initialize-interactive-shells) ;; if you want interactive shell support
 (venv-initialize-eshell) ;; if you want eshell support
 
+(add-hook 'org-mode-hook 'org-indent-mode)
 (add-to-list 'org-structure-template-alist
-             '("el" "#+BEGIN_SRC emacs-list\n?\n#+END_SRC"))
+             '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))

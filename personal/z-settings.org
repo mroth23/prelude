@@ -1,14 +1,59 @@
+* Overview
+This is the custom part of my emacs config.
+At the moment it's based on emacs-prelude, although I configure some parts differently.
+For example, I have spaceline instead of smart-mode-line, and a custom company configuration.
+
+Many things in here are inspired by Uncle Dave's emacs config, and a large amount of random
+config snippets I found around the internet.
+
+In the first section, I have general setup of UI or global modes such as line numbers, custom
+keybinds, the mode line and more.
+
+In the second section, there's major-mode specific settings for those modes that are important
+to me.
+
 * UI/global
+** Darwin
+Custom configuration for Mac OSX. I'm using Mitsuharu Yamamoto's emacs-mac,
+which requires some different settings than what prelude provides.
+
+Setup as follows:
+- fn      --> Hyper
+- Ctrl    --> Control
+- Option  --> Meta
+- Command --> Super
+
+Settings outside of emacs (System menu and Karabiner Elements):
+- Caps Lock --> Control
+- Return    --> Control ([[http://emacsredux.com/blog/2017/12/31/a-crazy-productivity-boost-remapping-return-to-control-2017-edition/][see this article]])
+
+#+BEGIN_SRC emacs-lisp
+  (when (eq system-type 'darwin) ;; mac specific settings
+    (setq mac-option-modifier 'meta)
+    ;; (setq mac-right-option-modifier 'none)
+    (setq mac-command-modifier 'super)
+    (setq mac-function-modifier 'hyper)
+    (global-set-key [kp-delete] 'delete-char))
+#+END_SRC
 ** Dashboard
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
   :ensure t
   :config
     (dashboard-setup-startup-hook)
-    (setq dashboard-startup-banner "~/.emacs.d/img/dashLogo.png")
     (setq dashboard-items '((recents  . 5)
                             (projects . 5)))
     (setq dashboard-banner-logo-title ""))
+#+END_SRC
+** Theme
+#+BEGIN_SRC emacs-lisp
+ (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+ (add-to-list 'default-frame-alist '(ns-appearance . dark))
+#+END_SRC
+** Scrolling
+#+BEGIN_SRC emacs-lisp
+(pixel-scroll-mode 1)
+(scroll-bar-mode -1)
 #+END_SRC
 ** Shortcuts / keybinds
 *** config-visit
@@ -138,15 +183,23 @@ Use spaceline (powerline) with emacs theme.
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
-  (use-package company
-    :ensure t
-    :init
-    (add-hook 'after-init-hook 'global-company-mode))
+    (use-package company
+      :ensure t
+      :config
+      (setq company-minimum-prefix-length 3)
+      (setq company-idle-delay 0)
+      :init
+      (add-hook 'after-init-hook 'global-company-mode))
 
-  (setq company-idle-delay 0)
-  ;;  (add-to-list 'company-backends 'company-dabbrev-code)
-  ;;  (add-to-list 'company-backends 'company-yasnippet)
-  ;;  (add-to-list 'company-backends 'company-files)
+  (with-eval-after-load 'company
+    (define-key company-active-map (kbd "M-n") nil)
+    (define-key company-active-map (kbd "M-p") nil)
+    (define-key company-active-map (kbd "C-n") #'company-select-next)
+    (define-key company-active-map (kbd "C-p") #'company-select-previous))
+
+    ;; (add-to-list 'company-backends 'company-dabbrev-code)
+    ;; (add-to-list 'company-backends 'company-yasnippet)
+    ;; (add-to-list 'company-backends 'company-files)
 #+END_SRC
 ** Desktop
 Not currently in use while trying dashboard.
@@ -224,6 +277,16 @@ Not currently in use while trying dashboard.
     :ensure t
     :init
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+END_SRC
+** pretty-symbols
+#+BEGIN_SRC emacs-lisp
+  (when window-system
+    (use-package pretty-mode
+      :ensure t
+      :config
+      (global-pretty-mode t)))
+
+  (global-prettify-symbols-mode +1)
 #+END_SRC
 ** EMMS
 #+BEGIN_SRC emacs-lisp
@@ -314,6 +377,7 @@ Not currently in use while trying dashboard.
 ** Org
 Snippet for writing elisp like everywhere around this file.
 #+BEGIN_SRC emacs-lisp
+  (add-hook 'org-mode-hook 'org-indent-mode)
   (add-to-list 'org-structure-template-alist
-               '("el" "#+BEGIN_SRC emacs-list\n?\n#+END_SRC"))
+               '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 #+END_SRC
