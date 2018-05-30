@@ -14,6 +14,12 @@
 
 (global-set-key (kbd "C-c v c") 'config-visit)
 
+(defun config-reload ()
+  (interactive)
+  (org-babel-load-file "~/.emacs.d/personal/z-settings.org"))
+
+(global-set-key (kbd "C-c v r") 'config-reload)
+
 (key-chord-define-global "xf" 'iy-go-to-char)
 (key-chord-define-global "xd" 'iy-go-to-char-backward)
 (key-chord-define-global ";;" "\C-e;")
@@ -69,7 +75,7 @@
 ;; Nyan cat mode
 (setq nyan-animate-nyancat t)
 (setq nyan-wavy-trail t)
-(setq nyan-bar-length 15)
+(setq nyan-bar-length 13)
 (nyan-mode 1)
 
 (use-package spaceline
@@ -104,6 +110,12 @@
 
 (spaceline-toggle-minor-modes-off)
 
+(use-package company
+  :ensure t
+  :init
+  (add-hook 'after-init-hook 'global-company-mode))
+
+(setq company-idle-delay 0)
 ;;  (add-to-list 'company-backends 'company-dabbrev-code)
 ;;  (add-to-list 'company-backends 'company-yasnippet)
 ;;  (add-to-list 'company-backends 'company-files)
@@ -152,12 +164,22 @@
 ;; Use tab to expand stuff in helm. (Sorry)
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 
+;; Fuzzy matching everywhere
+(setq helm-mode-fuzzy-match t)
+(setq helm-completion-in-region-fuzzy-match t)
+(setq helm-M-x-fuzzy-match t)
+
 ;; Create shortcut for things like the scratch buffer.
 (global-set-key [(control ?.)] (lambda () (interactive) (dot-mode 1)
                                  (message "Dot mode activated.")))
 
 ;; Turn on all the time.
 (add-hook 'find-file-hooks 'dot-mode-on)
+
+(use-package rainbow-delimiters
+  :ensure t
+  :init
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 (emms-all)
 (emms-default-players)
@@ -237,3 +259,6 @@
 ;; virtualenvwrapper init for eshell and interactive shell.
 (venv-initialize-interactive-shells) ;; if you want interactive shell support
 (venv-initialize-eshell) ;; if you want eshell support
+
+(add-to-list 'org-structure-template-alist
+             '("el" "#+BEGIN_SRC emacs-list\n?\n#+END_SRC"))

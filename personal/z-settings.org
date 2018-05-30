@@ -19,6 +19,12 @@
     (find-file "~/.emacs.d/personal/z-settings.org"))
 
   (global-set-key (kbd "C-c v c") 'config-visit)
+
+  (defun config-reload ()
+    (interactive)
+    (org-babel-load-file "~/.emacs.d/personal/z-settings.org"))
+
+  (global-set-key (kbd "C-c v r") 'config-reload)
 #+END_SRC
 *** key-chords
 #+BEGIN_SRC emacs-lisp
@@ -84,7 +90,7 @@
   ;; Nyan cat mode
   (setq nyan-animate-nyancat t)
   (setq nyan-wavy-trail t)
-  (setq nyan-bar-length 15)
+  (setq nyan-bar-length 13)
   (nyan-mode 1)
 #+END_SRC
 
@@ -132,9 +138,15 @@ Use spaceline (powerline) with emacs theme.
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
-;;  (add-to-list 'company-backends 'company-dabbrev-code)
-;;  (add-to-list 'company-backends 'company-yasnippet)
-;;  (add-to-list 'company-backends 'company-files)
+  (use-package company
+    :ensure t
+    :init
+    (add-hook 'after-init-hook 'global-company-mode))
+
+  (setq company-idle-delay 0)
+  ;;  (add-to-list 'company-backends 'company-dabbrev-code)
+  ;;  (add-to-list 'company-backends 'company-yasnippet)
+  ;;  (add-to-list 'company-backends 'company-files)
 #+END_SRC
 ** Desktop
 Not currently in use while trying dashboard.
@@ -190,6 +202,12 @@ Not currently in use while trying dashboard.
 
   ;; Use tab to expand stuff in helm. (Sorry)
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+
+  ;; Fuzzy matching everywhere
+  (setq helm-mode-fuzzy-match t)
+  (setq helm-completion-in-region-fuzzy-match t)
+  ;; For some reason this needs to be specified separately
+  (setq helm-M-x-fuzzy-match t)
 #+END_SRC
 ** dot-mode
 #+BEGIN_SRC emacs-lisp
@@ -200,6 +218,13 @@ Not currently in use while trying dashboard.
   ;; Turn on all the time.
   (add-hook 'find-file-hooks 'dot-mode-on)
 #+END_SRC
+** rainbow-delimiters
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :init
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+END_SRC
 ** EMMS
 #+BEGIN_SRC emacs-lisp
   (emms-all)
@@ -209,7 +234,7 @@ Not currently in use while trying dashboard.
   (emms-playing-time 1)
   (emms-mode-line-cycle 1)
 #+END_SRC
-* Programming
+* Major modes
 ** C/C++
 #+BEGIN_SRC emacs-lisp
   ;; Some C/C++ settings.
@@ -285,4 +310,10 @@ Not currently in use while trying dashboard.
   ;; virtualenvwrapper init for eshell and interactive shell.
   (venv-initialize-interactive-shells) ;; if you want interactive shell support
   (venv-initialize-eshell) ;; if you want eshell support
+#+END_SRC
+** Org
+Snippet for writing elisp like everywhere around this file.
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'org-structure-template-alist
+               '("el" "#+BEGIN_SRC emacs-list\n?\n#+END_SRC"))
 #+END_SRC
