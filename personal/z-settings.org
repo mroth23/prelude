@@ -33,7 +33,9 @@ Settings outside of emacs (System menu and Karabiner Elements):
     ;; (setq mac-right-option-modifier 'none)
     (setq mac-command-modifier 'super)
     (setq mac-function-modifier 'hyper)
-    (global-set-key [kp-delete] 'delete-char))
+    (global-set-key [kp-delete] 'delete-char)
+    ;; For some reason lockfiles break python anaconda-mode's autocomplete
+    (setq create-lockfiles nil))
 #+END_SRC
 ** Dashboard
 #+BEGIN_SRC emacs-lisp
@@ -75,7 +77,6 @@ Settings outside of emacs (System menu and Karabiner Elements):
 #+BEGIN_SRC emacs-lisp
   (key-chord-define-global "xf" 'iy-go-to-char)
   (key-chord-define-global "xd" 'iy-go-to-char-backward)
-  (key-chord-define-global ";;" "\C-e;")
 #+END_SRC
 *** switch-window
 #+BEGIN_SRC emacs-lisp
@@ -188,8 +189,8 @@ Use spaceline (powerline) with emacs theme.
       :config
       (setq company-minimum-prefix-length 3)
       (setq company-idle-delay 0)
-      :init
-      (add-hook 'after-init-hook 'global-company-mode))
+      (setq company-tooltip-limit 10)
+      (add-hook 'prog-mode-hook 'company-mode))
 
   (with-eval-after-load 'company
     (define-key company-active-map (kbd "M-n") nil)
@@ -317,6 +318,11 @@ Rich presence for Discord.
   (add-hook 'latex-mode-hook 'yas-minor-mode)
   (add-hook 'org-mode-hook 'yas-minor-mode)
 #+END_SRC
+** magit
+Refresh magit status buffer after saving a file.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status)
+#+END_SRC
 * Major modes
 ** C/C++
 #+BEGIN_SRC emacs-lisp
@@ -372,7 +378,6 @@ Rich presence for Discord.
 #+END_SRC
 ** Python
 #+BEGIN_SRC emacs-lisp
-  ;; Python
   ;; yasnippet
   (add-hook 'python-mode-hook 'yas-minor-mode)
 
@@ -381,12 +386,12 @@ Rich presence for Discord.
             (lambda ()
               (setq-default tab-width 4)))
 
-  (setq debug-on-message "deferred error.*")
-
-
   ;; virtualenvwrapper init for eshell and interactive shell.
   (venv-initialize-interactive-shells) ;; if you want interactive shell support
   (venv-initialize-eshell) ;; if you want eshell support
+
+  ;; anaconda-mode: It's mostly set up in prelude already.
+
 #+END_SRC
 ** Org
 Snippet for writing elisp like everywhere around this file.

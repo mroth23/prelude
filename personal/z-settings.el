@@ -3,7 +3,9 @@
   ;; (setq mac-right-option-modifier 'none)
   (setq mac-command-modifier 'super)
   (setq mac-function-modifier 'hyper)
-  (global-set-key [kp-delete] 'delete-char))
+  (global-set-key [kp-delete] 'delete-char)
+  ;; For some reason lockfiles break python anaconda-mode's autocomplete
+  (setq create-lockfiles nil))
 
 (use-package dashboard
   :ensure t
@@ -34,7 +36,6 @@
 
 (key-chord-define-global "xf" 'iy-go-to-char)
 (key-chord-define-global "xd" 'iy-go-to-char-backward)
-(key-chord-define-global ";;" "\C-e;")
 
 ;; switch-window settings
 ;; Override global key bindings for switching windows.
@@ -127,8 +128,8 @@
     :config
     (setq company-minimum-prefix-length 3)
     (setq company-idle-delay 0)
-    :init
-    (add-hook 'after-init-hook 'global-company-mode))
+    (setq company-tooltip-limit 10)
+    (add-hook 'prog-mode-hook 'company-mode))
 
 (with-eval-after-load 'company
   (define-key company-active-map (kbd "M-n") nil)
@@ -232,6 +233,8 @@
 (add-hook 'latex-mode-hook 'yas-minor-mode)
 (add-hook 'org-mode-hook 'yas-minor-mode)
 
+(add-hook 'after-save-hook 'magit-after-save-refresh-status)
+
 ;; Some C/C++ settings.
 
 ;; company + company-irony
@@ -282,7 +285,6 @@
 
 (global-set-key (kbd "C-c c f") 'clang-format-region)
 
-;; Python
 ;; yasnippet
 (add-hook 'python-mode-hook 'yas-minor-mode)
 
@@ -291,12 +293,11 @@
           (lambda ()
             (setq-default tab-width 4)))
 
-(setq debug-on-message "deferred error.*")
-
-
 ;; virtualenvwrapper init for eshell and interactive shell.
 (venv-initialize-interactive-shells) ;; if you want interactive shell support
 (venv-initialize-eshell) ;; if you want eshell support
+
+;; anaconda-mode: It's mostly set up in prelude already.
 
 (add-hook 'org-mode-hook 'org-indent-mode)
 (add-to-list 'org-structure-template-alist
