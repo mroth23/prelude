@@ -81,10 +81,10 @@
 (global-set-key (kbd "H-SPC") 'set-rectangular-region-anchor)
 
 ;; Special commands for inserting numbers or chars, sorting and reversing.
-(global-set-key (kbd "C-c m n") 'mc/insert-numbers)
-(global-set-key (kbd "C-c m l") 'mc/insert-letters)
-(global-set-key (kbd "C-c m s") 'mc/sort-regions)
-(global-set-key (kbd "C-c m r") 'mc/reverse-regions)
+(global-set-key (kbd "C-c x n") 'mc/insert-numbers)
+(global-set-key (kbd "C-c x l") 'mc/insert-letters)
+(global-set-key (kbd "C-c x s") 'mc/sort-regions)
+(global-set-key (kbd "C-c x r") 'mc/reverse-regions)
 
 ;; Nyan cat mode
 (setq nyan-animate-nyancat t)
@@ -263,6 +263,18 @@
   (define-key god-local-mode-map (kbd "i") 'god-local-mode)
   (define-key god-local-mode-map (kbd ".") 'repeat))
 
+(use-package sx
+  :config
+  (bind-keys :prefix "C-c q"
+             :prefix-map my-sx-map
+             :prefix-docstring "Global keymap for SX."
+             ("q" . sx-tab-all-questions)
+             ("i" . sx-inbox)
+             ("o" . sx-open-link)
+             ("u" . sx-tab-unanswered-my-tags)
+             ("a" . sx-ask)
+             ("s" . sx-search)))
+
 ;; Some C/C++ settings.
 
 ;; company + company-irony
@@ -311,7 +323,7 @@
 ;; Use clang for formatting and flycheck in C/C++.
 (flycheck-clang-analyzer-setup)
 
-(global-set-key (kbd "C-c c f") 'clang-format-region)
+(global-set-key (kbd "C-c x f") 'clang-format-region)
 
 ;; yasnippet
 (add-hook 'python-mode-hook 'yas-minor-mode)
