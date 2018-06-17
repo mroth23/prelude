@@ -12,5 +12,4 @@
    nyan-mode
    swiper-helm
    switch-window
-   virtualenvwrapper
    use-package))

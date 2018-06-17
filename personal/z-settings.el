@@ -13,7 +13,8 @@
     (dashboard-setup-startup-hook)
     (setq dashboard-items '((recents  . 5)
                             (projects . 5)))
-    (setq dashboard-banner-logo-title ""))
+    (setq dashboard-banner-logo-title "")
+    (add-to-list 'dashboard-items '(agenda) t))
 
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
@@ -168,8 +169,8 @@
 (setq prelude-whitespace t)
 (setq prelude-clean-whitespace-on-save t)
 
-;; Mark lines exceeding 100 columns.
-(setq whitespace-line-column 100)
+;; Mark lines exceeding 80 columns.
+(setq whitespace-line-column 80)
 ;; Set whitespace style: cleanup empty lines / trailing whitespace, show whitespace characters.
 (setq whitespace-style '(empty trailing face lines-tail indentation::space tabs newline tab-mark newline-mark))
 ;; Use spaces instead of tabs by default.
@@ -190,6 +191,15 @@
 (setq helm-completion-in-region-fuzzy-match t)
 ;; For some reason this needs to be specified separately
 (setq helm-M-x-fuzzy-match t)
+
+;; Additional Helm-related packages
+(use-package helm-flx
+  :ensure t
+  :config
+  (helm-flx-mode +1)
+  (setq helm-flx-for-helm-find-files t ;; t by default
+        helm-flx-for-helm-locate t) ;; nil by default
+  )
 
 ;; Create shortcut for things like the scratch buffer.
 (global-set-key [(control ?.)] (lambda () (interactive) (dot-mode 1)
@@ -219,8 +229,9 @@
 (emms-mode-line-cycle 1)
 
 (use-package elcord
-  :ensure t)
-(elcord-mode)
+    :ensure t
+    :config
+    (elcord-mode))
 
 (use-package yasnippet
   :ensure t
@@ -233,7 +244,24 @@
 (add-hook 'latex-mode-hook 'yas-minor-mode)
 (add-hook 'org-mode-hook 'yas-minor-mode)
 
-(add-hook 'after-save-hook 'magit-after-save-refresh-status)
+(with-eval-after-load "magit"
+    (add-hook 'after-save-hook 'magit-after-save-refresh-status))
+
+(use-package magithub
+  :after magit
+  :config
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/projects"))
+
+(use-package hideshow-org
+  :ensure t
+  :config
+  ()
+  (add-hook 'prog-mode-hook 'hs-org/minor-mode))
+
+(with-eval-after-load 'god-mode
+  (define-key god-local-mode-map (kbd "i") 'god-local-mode)
+  (define-key god-local-mode-map (kbd ".") 'repeat))
 
 ;; Some C/C++ settings.
 
@@ -298,6 +326,27 @@
 (venv-initialize-eshell) ;; if you want eshell support
 
 ;; anaconda-mode: It's mostly set up in prelude already.
+
+;; virtualenvwrapper
+(use-package virtualenvwrapper
+  :ensure t
+  :config
+  (setq projectile-switch-project-action
+        '(lambda ()
+           (venv-projectile-auto-workon)
+           (projectile-find-file))))
+
+;; py-isort
+(use-package py-isort
+  :ensure t
+  :config
+  (add-hook 'before-save-hook 'py-isort-before-save))
+
+;; yapf
+(use-package py-yapf
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'py-yapf-enable-on-save))
 
 (add-hook 'org-mode-hook 'org-indent-mode)
 (add-to-list 'org-structure-template-alist
