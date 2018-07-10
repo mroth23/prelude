@@ -22,6 +22,8 @@
 (pixel-scroll-mode 1)
 (scroll-bar-mode -1)
 
+
+
 ;; Custom shortcut to open this file.
 (defun config-visit ()
   (interactive)
@@ -71,6 +73,42 @@
 
 (setq aw-keys '(?a ?s ?d ?f ?k ?l ?\; ?w ?e ?i))
 
+;; Hydra keybinds for ace-window
+(global-set-key
+ (kbd "C-M-o")
+ (defhydra hydra-window (:color red
+                         :columns nil)
+  "window"
+  ("h" windmove-left nil)
+  ("j" windmove-down nil)
+  ("k" windmove-up nil)
+  ("l" windmove-right nil)
+  ("H" hydra-move-splitter-left nil)
+  ("J" hydra-move-splitter-down nil)
+  ("K" hydra-move-splitter-up nil)
+  ("L" hydra-move-splitter-right nil)
+  ("v" (lambda ()
+         (interactive)
+         (split-window-right)
+         (windmove-right))
+   "vert")
+  ("x" (lambda ()
+         (interactive)
+         (split-window-below)
+         (windmove-down))
+   "horz")
+  ("t" transpose-frame "'" :exit t)
+  ("o" delete-other-windows "one" :exit t)
+  ("a" ace-window "ace")
+  ("s" ace-swap-window "swap")
+  ("d" ace-delete-window "del")
+  ("i" ace-maximize-window "ace-one" :exit t)
+  ("b" ido-switch-buffer "buf")
+  ("m" headlong-bookmark-jump "bmk")
+  ("q" nil "cancel")
+  ("u" (progn (winner-undo) (setq this-command 'winner-undo)) "undo")
+  ("f" nil)))
+
 ;; Multiple cursors
 (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
 
@@ -85,6 +123,36 @@
 (global-set-key (kbd "C-c x l") 'mc/insert-letters)
 (global-set-key (kbd "C-c x s") 'mc/sort-regions)
 (global-set-key (kbd "C-c x r") 'mc/reverse-regions)
+
+(defun daedreth/kill-inner-word ()
+  "Kills the entire word your cursor is in. Equivalent to 'ciw' in vim."
+  (interactive)
+  (forward-char 1)
+  (backward-word)
+  (kill-word 1))
+(global-set-key (kbd "C-c x w") 'daedreth/kill-inner-word)
+
+;; Another one of Uncle Dave's functions to copy a while line.
+(defun daedreth/copy-whole-line ()
+  "Copies a line without regard for cursor position."
+  (interactive)
+  (save-excursion
+    (kill-new
+     (buffer-substring
+      (point-at-bol)
+      (point-at-eol)))))
+(global-set-key (kbd "C-c x c") 'daedreth/copy-whole-line)
+
+(defun visit-package-list-buffer ()
+  (interactive)
+  (crux-start-or-switch-to (lambda ()
+                             (package-list-packages))
+                           "*Packages*"))
+
+(global-set-key (kbd "C-c v p") 'visit-package-list-buffer)
+
+;; Bind avy-copy-line. Uses x d because it actually duplicates a line.
+(global-set-key (kbd "C-c x d") 'avy-copy-line)
 
 ;; Nyan cat mode
 (setq nyan-animate-nyancat t)
@@ -187,10 +255,14 @@
 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
 
 ;; Fuzzy matching everywhere
-(setq helm-mode-fuzzy-match t)
-(setq helm-completion-in-region-fuzzy-match t)
-;; For some reason this needs to be specified separately
-(setq helm-M-x-fuzzy-match t)
+(setq helm-mode-fuzzy-match t
+      helm-M-x-fuzzy-match t
+      helm-completion-in-region-fuzzy-match t)
+
+;; Autoresize helm buffer depending on match count
+(setq helm-autoresize-max-height 0
+      helm-autoresize-min-height 40)
+(helm-autoresize-mode 1)
 
 ;; Additional Helm-related packages
 (use-package helm-flx
@@ -253,11 +325,33 @@
   (magithub-feature-autoinject t)
   (setq magithub-clone-default-directory "~/projects"))
 
-(use-package hideshow-org
+(use-package vimish-fold
   :ensure t
-  :config
-  ()
-  (add-hook 'prog-mode-hook 'hs-org/minor-mode))
+  :config (add-hook 'prog-mode-hook 'vimish-fold-mode))
+
+(bind-key "s-a" (defhydra hydra-vimish-fold
+                  (:color blue
+                   :columns 3)
+                  "fold"
+                  ("a" vimish-fold-avy "avy")
+                  ("d" vimish-fold-delete "del")
+                  ("D" vimish-fold-delete-all "del-all")
+                  ("u" vimish-fold-unfold "undo")
+                  ("U" vimish-fold-unfold-all "undo-all")
+                  ("s" vimish-fold "fold")
+                  ("r" vimish-fold-refold "refold")
+                  ("R" vimish-fold-refold-all "refold-all")
+                  ("t" vimish-fold-toggle "toggle" :exit nil)
+                  ("T" vimish-fold-toggle-all "toggle-all" :exit nil)
+                  ("j" vimish-fold-next-fold "down" :exit nil)
+                  ("k" vimish-fold-previous-fold "up" :exit nil)
+                  ("q" nil "quit")))
+
+;; (use-package hideshow-org
+;;   :ensure t
+;;   :config
+;;   ()
+;;   (add-hook 'prog-mode-hook 'hs-org/minor-mode))
 
 (with-eval-after-load 'god-mode
   (define-key god-local-mode-map (kbd "i") 'god-local-mode)
@@ -274,6 +368,19 @@
              ("u" . sx-tab-unanswered-my-tags)
              ("a" . sx-ask)
              ("s" . sx-search)))
+
+(use-package nhexl-mode
+  :ensure t
+  :defer t)
+
+;;;; This is currently disabled because of a compilation error in pdf-tools.
+;; (use-package pdf-tools
+;;   :ensure t
+;;   :config
+;;   (custom-set-variables
+;;    '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
+;;   (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
+;; (pdf-tools-install)
 
 ;; Some C/C++ settings.
 
@@ -360,6 +467,15 @@
   :config
   (add-hook 'python-mode-hook 'py-yapf-enable-on-save))
 
+(setq org-src-fontify-natively t
+      org-src-tab-acts-natively t
+      org-confirm-babel-evaluate nil
+      org-export-with-smart-quotes t)
+(add-hook 'org-mode-hook 'org-indent-mode)
+
 (add-hook 'org-mode-hook 'org-indent-mode)
 (add-to-list 'org-structure-template-alist
              '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+
+(use-package htmlize
+  :ensure t)
