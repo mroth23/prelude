@@ -359,6 +359,7 @@
   (define-key god-local-mode-map (kbd ".") 'repeat))
 
 (use-package sx
+  :ensure t
   :config
   (bind-keys :prefix "C-c q"
              :prefix-map my-sx-map

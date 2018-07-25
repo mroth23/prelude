@@ -226,6 +226,10 @@
       bookmark-save-flag 1)
 
 ;; projectile is a project management mode
+;; Set projectile keymap prefix back to C-c p. It's not used in my config,
+;; and was previously the default behaviour included in the prelude package.
+(setq projectile-keymap-prefix (kbd "C-c p"))
+
 (require 'projectile)
 (setq projectile-cache-file (expand-file-name  "projectile.cache" prelude-savefile-dir))
 (projectile-mode t)

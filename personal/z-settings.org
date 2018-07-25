@@ -468,6 +468,7 @@ annoying to do so manually. Also, use magithub for GitHub integration in Magit.
 ** StackExchange / sx
 #+BEGIN_SRC emacs-lisp
   (use-package sx
+    :ensure t
     :config
     (bind-keys :prefix "C-c q"
                :prefix-map my-sx-map
