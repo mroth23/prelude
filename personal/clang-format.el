@@ -1,1 +1,1 @@
-/usr/local/Cellar/llvm/6.0.0/share/clang/clang-format.el
+/usr/local/Cellar/llvm/6.0.1/share/clang/clang-format.el

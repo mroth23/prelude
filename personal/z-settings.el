@@ -22,7 +22,8 @@
 (pixel-scroll-mode 1)
 (scroll-bar-mode -1)
 
-
+(use-package hydra
+  :ensure t)
 
 ;; Custom shortcut to open this file.
 (defun config-visit ()
@@ -451,7 +452,7 @@
   :ensure t
   :config
   (setq projectile-switch-project-action
-        '(lambda ()
+        '(lambda()
            (venv-projectile-auto-workon)
            (projectile-find-file))))
 
@@ -462,10 +463,10 @@
   (add-hook 'before-save-hook 'py-isort-before-save))
 
 ;; yapf
-(use-package py-yapf
+(use-package yapfify
   :ensure t
   :config
-  (add-hook 'python-mode-hook 'py-yapf-enable-on-save))
+  (add-hook 'python-mode-hook 'yapf-mode))
 
 (setq org-src-fontify-natively t
       org-src-tab-acts-natively t

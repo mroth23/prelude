@@ -61,7 +61,8 @@ Settings outside of emacs (System menu and Karabiner Elements):
 ** Shortcuts / keybinds
 *** Hydra
 #+BEGIN_SRC emacs-lisp
-
+  (use-package hydra
+    :ensure t)
 #+END_SRC
 *** Visit config
 #+BEGIN_SRC emacs-lisp
@@ -570,7 +571,7 @@ Note that this is a minor mode. Defer loading until actually used.
     :ensure t
     :config
     (setq projectile-switch-project-action
-          '(lambda ()
+          '(lambda()
              (venv-projectile-auto-workon)
              (projectile-find-file))))
 
@@ -581,10 +582,10 @@ Note that this is a minor mode. Defer loading until actually used.
     (add-hook 'before-save-hook 'py-isort-before-save))
 
   ;; yapf
-  (use-package py-yapf
+  (use-package yapfify
     :ensure t
     :config
-    (add-hook 'python-mode-hook 'py-yapf-enable-on-save))
+    (add-hook 'python-mode-hook 'yapf-mode))
 #+END_SRC
 ** Org
 Basic settings (lifted again from Uncle Dave).
