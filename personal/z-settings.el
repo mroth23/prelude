@@ -265,6 +265,9 @@
       helm-autoresize-min-height 40)
 (helm-autoresize-mode 1)
 
+;; Use git grep for helm.
+(setq projectile-use-git-grep 1)
+
 ;; Additional Helm-related packages
 (use-package helm-flx
   :ensure t
@@ -383,6 +386,18 @@
 ;;    '(pdf-tools-handle-upgrades nil)) ; Use brew upgrade pdf-tools instead.
 ;;   (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
 ;; (pdf-tools-install)
+
+(use-package outshine
+  :ensure t)
+;; Configure usage in various modes.
+(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
+(add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
+(add-hook 'LaTeX-mode-hook 'outline-minor-mode)
+(add-hook 'picolisp-mode-hook 'outline-minor-mode)
+(add-hook 'clojure-mode-hook 'outline-minor-mode)
+(add-hook 'ess-mode-hook 'outline-minor-mode)
+(add-hook 'ledger-mode-hook 'outline-minor-mode)
+(add-hook 'python-mode-hook 'outline-minor-mode)
 
 ;; Some C/C++ settings.
 
