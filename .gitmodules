@@ -1,0 +1,3 @@
+[submodule "elpa-mirror"]
+	path = elpa-mirror
+	url = https://github.com/d12frosted/elpa-mirror.git

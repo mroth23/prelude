@@ -26,6 +26,7 @@
 (require 'prelude-js)
 (require 'prelude-latex)
 (require 'prelude-lisp)
+;; (require 'prelude-lsp) ;; Disabled for own lsp-mode config.
 ;; (require 'prelude-ocaml)
 (require 'prelude-org) ;; Org-mode helps you keep TODO lists, notes and more
 (require 'prelude-perl)

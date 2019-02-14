@@ -7,10 +7,24 @@
   ;; For some reason lockfiles break python anaconda-mode's autocomplete
   (setq create-lockfiles nil))
 
-(setq jit-lock-defer-time 0)
-(setq fast-but-imprecise-scrolling t)
-(setq inhibit-compacting-font-caches t)
-(setq-default bidi-display-reordering nil)
+(when (eq system-type 'windows-nt)
+  ;; Performance
+  (setq w32-pipe-read-delay 0)
+  (setq w32-pipe-buffer-size (* 64 1024)) ;; 64k Buffer Size
+  (setq jit-lock-defer-time 0)
+  (setq inhibit-compacting-font-caches t)
+  ;; Scrolling fixes
+  (setq fast-but-imprecise-scrolling t)
+  (pixel-scroll-mode 0)
+  (setq scroll-conservatively 10000
+        scroll-preserve-screen-position 1
+        scroll-step 1
+        scroll-bar-mode -1)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+  (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+  (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+  ;; Font
+  (set-face-attribute 'default nil :family "Meslo LG M" :height 90))
 
 (use-package dashboard
   :ensure t
@@ -22,7 +36,10 @@
     (add-to-list 'dashboard-items '(agenda) t))
 
 (setq projectile-indexing-method 'alien
-      projectile-generic-command "fd . -0"
+      projectile-generic-command "fd . -0 --no-ignore-vcs"
+      projectile-git-command "fd . -0 --no-ignore-vcs"
+      projectile-svn-command "fd . -0 --no-ignore-vcs"
+      projectile-git-submodule-command nil
       projectile-sort-order 'recentf
       projectile-enable-caching t)
 
@@ -156,6 +173,16 @@
       (point-at-bol)
       (point-at-eol)))))
 (global-set-key (kbd "C-c x c") 'daedreth/copy-whole-line)
+
+(defun all-over-the-screen ()
+  (interactive)
+  (delete-other-windows)
+  (split-window-horizontally)
+  (split-window-horizontally)
+  (balance-windows)
+  (follow-mode t))
+
+(global-set-key (kbd "C-c x a") 'all-over-the-screen)
 
 (defun visit-package-list-buffer ()
   (interactive)
@@ -296,6 +323,7 @@
   (setq helm-flx-for-helm-find-files t ;; t by default
         helm-flx-for-helm-locate t) ;; nil by default
   )
+(setq helm-ag-base-command "ag -U --vimgrep")
 
 ;; Create shortcut for things like the scratch buffer.
 (global-set-key [(control ?.)] (lambda () (interactive) (dot-mode 1)
@@ -317,7 +345,7 @@
 (when window-system
   (use-package pretty-mode
     :ensure t
-    :config
+    :after
     (global-pretty-mode t)))
 
 (global-prettify-symbols-mode +1)
@@ -421,59 +449,77 @@
   (add-hook 'ledger-mode-hook 'outshine-mode)
   (add-hook 'python-mode-hook 'outshine-mode))
 
-;; Some C/C++ settings.
-(setq c-default-style "bsd")
+(use-package treemacs
+  :ensure t
+  :config
+  (setq treemacs-width 50
+    treemacs-indentation 2))
 
+;; Enable subword-mode for all programming modes
+(add-hook 'prog-mode-hook 'subword-mode)
+
+(use-package lsp-mode
+  :ensure t)
+(use-package company-lsp
+  :ensure t
+  :config
+  (push 'company-lsp company-backends)
+  (add-hook 'after-init-hook 'global-company-mode)
+  (setq lsp-auto-guess-root t
+        lsp-print-io t))
+
+(use-package lsp-ui
+  :ensure t)
+(use-package dap-mode
+  :ensure t :after lsp-mode
+  :config
+  (dap-mode t)
+  (dap-ui-mode t))
+
+;; Some keybinds for lsp-ui.
+(with-eval-after-load 'lsp-ui
+(define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+(define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+(define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
+(define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
+(define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
+(define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
+(define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
+(define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
+(define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point))
+
+(setq lsp-ui-sideline-enable t)
+(setq lsp-ui-doc-enable t)
+(setq lsp-ui-peek-enable t)
+(setq lsp-ui-peek-always-show t)
+
+;; Some C/C++ settings
+(require 'lsp-mode)
+(require 'lsp-clients)
 (use-package clang-format
   :ensure t)
 
-;; company + company-irony
-(use-package company-irony
+;; (setq lsp-clients-clangd-executable "c:/Program Files/LLVM/bin/clangd.exe")
+
+(add-hook 'c++-mode-hook 'lsp)
+
+(use-package ccls
   :ensure t
-  :config
-  (require 'company)
-  (add-to-list 'company-backends 'company-irony))
-
-(use-package irony
-  :ensure t
-  :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
-
-;; ctags
-(setq path-to-ctags "/usr/local/bin/ctags")
-
-(defun create-tags (dir-name)
-  "Create tags file."
-  (interactive "DDirectory: ")
-  (shell-command
-   (format "%s -f TAGS -R %s" path-to-ctags (directory-file-name dir-name))))
-
-(defadvice find-tag (around refresh-etags activate)
-  "Rerun etags and reload tags if tag not found and redo find-tag.
-   If buffer is modified, ask about save before running etags."
-  (let ((extension (file-name-extension (buffer-file-name))))
-    (condition-case err
-        ad-do-it
-      (error (and (buffer-modified-p)
-                  (not (ding))
-                  (y-or-n-p "Buffer is modified, save it? ")
-                  (save-buffer))
-             (er-refresh-etags extension)
-             ad-do-it))))
-
-(defun er-refresh-etags (&optional extension)
-  "Run etags on all peer files in current dir and reload them silently."
-  (interactive)
-  (shell-command (format "etags *.%s" (or extension "el")))
-  (let ((tags-revert-without-query t))  ; don't query, revert silently
-    (visit-tags-table default-directory nil)))
-
+  :hook ((c-mode c++-mode objc-mode) .
+         (lambda () (require 'ccls) (lsp))))
+(setq ccls-executable "c:/prj/ccls/Release/ccls.exe")
+(setq lsp-prefer-flymake nil)
+(setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
+(setq ccls-args '("--log-file=c:/prj/ccls/ccls.log"))
 ;; Use clang for formatting and flycheck in C/C++.
 (flycheck-clang-analyzer-setup)
 
 (global-set-key (kbd "C-c x f") 'clang-format-region)
+
+(setq-default c-default-style "bsd")
+
+(add-hook 'c-mode-common-hook '(lambda () (c-toggle-auto-newline 1)))
+(add-hook 'c-mode-common-hook '(lambda () (c-toggle-hungry-state 1)))
 
 ;; yasnippet
 (add-hook 'python-mode-hook 'yas-minor-mode)
@@ -523,3 +569,32 @@
 
 (use-package htmlize
   :ensure t)
+
+(setq-default
+ cperl-indent-level 4
+ cperl-close-paren-offset -4
+ cperl-continued-statement-offset 4
+ cperl-indent-parens-as-block t
+ cperl-tab-always-indent t
+ cperl-extra-newline-before-brace t
+ cperl-brace-offset -4
+ cperl-merge-trailing-else nil)
+
+(use-package lsp-java
+  :ensure t
+  :after lsp
+  :init
+  (add-hook 'java-mode-hook 'lsp)
+  :config
+  (setq lsp-java-server-install-dir
+        (expand-file-name "~/src/eclipse.jdt.ls.server/")
+        lsp-java-workspace-dir
+        (expand-file-name "~/src/eclipse.jdt.ls/")))
+
+(use-package dap-java :after (lsp-java))
+(use-package lsp-java-treemacs :after (treemacs))
+(add-hook 'java-mode-hook (lambda ()
+                            (setq c-basic-offset 4
+                                  tab-width 4
+                                  indent-tabs-mode t
+                                  c-default-style "bsd")))

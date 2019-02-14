@@ -36,12 +36,13 @@
 (require 'package)
 
 ;; accessing a package repo over https on Windows is a no go, so we
-;; fallback to http there
+;; fallback to local elpa-mirror there.
 (if (eq system-type 'windows-nt)
-    (add-to-list 'package-archives
-                 '("melpa" . "http://melpa.org/packages/") t)
-  (add-to-list 'package-archives
-               '("melpa" . "https://melpa.org/packages/") t))
+    (setq package-archives '(("melpa" . "~/.emacs.d/elpa-mirror/melpa/")
+                             ("org" . "~/.emacs.d/elpa-mirror/org/")
+                             ("gnu" . "~/.emacs.d/elpa-mirror/gnu/"))))
+
+(setq package-enable-at-startup nil)
 
 ;; load the pinned packages
 (let ((prelude-pinned-packages-file (expand-file-name "prelude-pinned-packages.el" prelude-dir)))
