@@ -519,6 +519,8 @@ Note that this is a minor mode. Defer loading until actually used.
 ** C/C++
 #+BEGIN_SRC emacs-lisp
   ;; Some C/C++ settings.
+  (use-package clang-format
+    :ensure t)
 
   ;; company + company-irony
   (use-package company-irony

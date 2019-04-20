@@ -400,6 +400,8 @@
 (add-hook 'python-mode-hook 'outline-minor-mode)
 
 ;; Some C/C++ settings.
+(use-package clang-format
+  :ensure t)
 
 ;; company + company-irony
 (use-package company-irony
