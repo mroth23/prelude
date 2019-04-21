@@ -7,6 +7,11 @@
   ;; For some reason lockfiles break python anaconda-mode's autocomplete
   (setq create-lockfiles nil))
 
+(setq jit-lock-defer-time 0)
+(setq fast-but-imprecise-scrolling t)
+(setq inhibit-compacting-font-caches t)
+(setq-default bidi-display-reordering nil)
+
 (use-package dashboard
   :ensure t
   :config
@@ -16,11 +21,19 @@
     (setq dashboard-banner-logo-title "")
     (add-to-list 'dashboard-items '(agenda) t))
 
+(setq projectile-indexing-method 'alien
+      projectile-generic-command "fd . -0"
+      projectile-sort-order 'recentf
+      projectile-enable-caching t)
+
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 
-(pixel-scroll-mode 1)
 (scroll-bar-mode -1)
+
+(if (eq system-type 'windows-nt)
+    (pixel-scroll-mode -1)
+    (pixel-scroll-mode 1))
 
 (use-package hydra
   :ensure t)
@@ -155,10 +168,13 @@
 ;; Bind avy-copy-line. Uses x d because it actually duplicates a line.
 (global-set-key (kbd "C-c x d") 'avy-copy-line)
 
-;; Nyan cat mode
-(setq nyan-animate-nyancat t)
-(setq nyan-wavy-trail t)
-(setq nyan-bar-length 13)
+(use-package nyan-mode
+  :ensure t
+  :config
+  (setq nyan-animate-nyancat t
+        nyan-wavy-trail t
+        nyan-bar-length 13))
+
 (nyan-mode 1)
 
 (use-package spaceline
@@ -221,18 +237,7 @@
 ;;       desktop-auto-save-timeout   30)
 ;; (desktop-save-mode 1)
 
-(setq nlinum-highlight-current-line t)
-(setq nlinum-format "%4d \u2502")
-
-;; Use this to have nlinum globally.
-;; (global-nlinum-mode 1)
-
-(defun nlinum-set-face-attribute ()
-  (set-face-attribute 'nlinum-current-line nil :background "gray20")
-  (set-face-attribute 'linum nil :background "gray30" :foreground "gray80"))
-
-(add-hook 'nlinum-mode-hook 'nlinum-set-face-attribute)
-(add-hook 'prog-mode-hook 'nlinum-mode)
+(global-display-line-numbers-mode)
 
 ;; Enable mode, and whitespace cleanup on save.
 (setq prelude-whitespace t)
@@ -246,23 +251,42 @@
 (setq-default indent-tabs-mode nil)
 
 ;; dotenv-mode
+(use-package dotenv-mode
+  :ensure t)
+
 ;; Also apply to .env with extension such as .env.local
 (add-to-list 'auto-mode-alist '("\\.env\\..*\\'" . dotenv-mode))
 
-;; Use swiper (with helm backend) for search.
+;; Use swiper for search.
+(use-package swiper
+  :ensure t)
+
 (global-set-key (kbd "C-s") 'swiper)
 
-;; Use tab to expand stuff in helm. (Sorry)
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+(with-eval-after-load 'helm
+  ;; Use tab to expand stuff in helm. (Sorry)
+  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
+  (define-key helm-map (kbd "C-z") 'helm-select-action)
+  ;; Fuzzy matching everywhere
+  (setq
+   helm-mode-fuzzy-match t
+   helm-completion-in-region-fuzzy-match t
+   helm-buffers-fuzzy-matching t
+   helm-imenu-fuzzy-match t
+   helm-recentf-fuzzy-match t
+   helm-locate-fuzzy-match nil
+   helm-M-x-fuzzy-match t
+   helm-semantic-fuzzy-match t
 
-;; Fuzzy matching everywhere
-(setq helm-mode-fuzzy-match t
-      helm-M-x-fuzzy-match t
-      helm-completion-in-region-fuzzy-match t)
+   helm-case-fold-search 'smart
+   helm-ff-transformer-show-only-basename nil
+   helm-ff-newfile-prompt-p nil
 
-;; Autoresize helm buffer depending on match count
-(setq helm-autoresize-max-height 0
-      helm-autoresize-min-height 40)
+   ;; Autoresize helm buffer depending on match count
+   helm-autoresize-max-height 0
+   helm-autoresize-min-height 40))
+
 (helm-autoresize-mode 1)
 
 ;; Use git grep for helm.
@@ -321,13 +345,11 @@
 (add-hook 'org-mode-hook 'yas-minor-mode)
 
 (with-eval-after-load "magit"
-    (add-hook 'after-save-hook 'magit-after-save-refresh-status))
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status))
 
-(use-package magithub
-  :after magit
-  :config
-  (magithub-feature-autoinject t)
-  (setq magithub-clone-default-directory "~/projects"))
+(use-package forge
+  :ensure t
+  :after magit)
 
 (use-package vimish-fold
   :ensure t
@@ -388,16 +410,15 @@
 ;; (pdf-tools-install)
 
 (use-package outshine
-  :ensure t)
-;; Configure usage in various modes.
-(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
-(add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
-(add-hook 'LaTeX-mode-hook 'outline-minor-mode)
-(add-hook 'picolisp-mode-hook 'outline-minor-mode)
-(add-hook 'clojure-mode-hook 'outline-minor-mode)
-(add-hook 'ess-mode-hook 'outline-minor-mode)
-(add-hook 'ledger-mode-hook 'outline-minor-mode)
-(add-hook 'python-mode-hook 'outline-minor-mode)
+  :ensure t
+  :config
+  (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
+  (add-hook 'LaTeX-mode-hook 'outshine-mode)
+  (add-hook 'picolisp-mode-hook 'outshine-mode)
+  (add-hook 'clojure-mode-hook 'outshine-mode)
+  (add-hook 'ess-mode-hook 'outshine-mode)
+  (add-hook 'ledger-mode-hook 'outshine-mode)
+  (add-hook 'python-mode-hook 'outshine-mode))
 
 ;; Some C/C++ settings.
 (use-package clang-format
@@ -459,9 +480,6 @@
           (lambda ()
             (setq-default tab-width 4)))
 
-;; virtualenvwrapper init for eshell and interactive shell.
-(venv-initialize-interactive-shells) ;; if you want interactive shell support
-(venv-initialize-eshell) ;; if you want eshell support
 
 ;; anaconda-mode: It's mostly set up in prelude already.
 
@@ -473,6 +491,10 @@
         '(lambda()
            (venv-projectile-auto-workon)
            (projectile-find-file))))
+
+;; virtualenvwrapper init for eshell and interactive shell.
+(venv-initialize-interactive-shells) ;; if you want interactive shell support
+(venv-initialize-eshell) ;; if you want eshell support
 
 ;; py-isort
 (use-package py-isort

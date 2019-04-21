@@ -1,15 +1,11 @@
 (prelude-require-packages
  '(cl-lib
    dot-mode
-   dotenv-mode
    emms
    emms-mode-line-cycle
    fancy-battery
    flycheck-clang-analyzer
    iy-go-to-char
    multiple-cursors
-   nlinum
-   nyan-mode
-   swiper-helm
    switch-window
    use-package))
