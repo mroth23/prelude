@@ -261,7 +261,13 @@
 (use-package swiper
   :ensure t)
 
-(global-set-key (kbd "C-s") 'swiper)
+(defun swiper-region ()
+  "Use current region if active for swiper search"
+  (interactive)
+  (if (use-region-p)
+      (swiper (format "%s" (buffer-substring (region-beginning) (region-end))))
+    (swiper)))
+(global-set-key (kbd "C-s") 'swiper-region)
 
 (with-eval-after-load 'helm
   ;; Use tab to expand stuff in helm. (Sorry)
@@ -421,6 +427,8 @@
   (add-hook 'python-mode-hook 'outshine-mode))
 
 ;; Some C/C++ settings.
+(setq c-default-style "bsd")
+
 (use-package clang-format
   :ensure t)
 

@@ -354,7 +354,13 @@ Not currently in use while trying dashboard.
   (use-package swiper
     :ensure t)
 
-  (global-set-key (kbd "C-s") 'swiper)
+  (defun swiper-region ()
+    "Use current region if active for swiper search"
+    (interactive)
+    (if (use-region-p)
+        (swiper (format "%s" (buffer-substring (region-beginning) (region-end))))
+      (swiper)))
+  (global-set-key (kbd "C-s") 'swiper-region)
 
   (with-eval-after-load 'helm
     ;; Use tab to expand stuff in helm. (Sorry)
@@ -549,6 +555,8 @@ Note that this is a minor mode. Defer loading until actually used.
 ** C/C++
 #+BEGIN_SRC emacs-lisp
   ;; Some C/C++ settings.
+  (setq c-default-style "bsd")
+
   (use-package clang-format
     :ensure t)
 
