@@ -309,6 +309,11 @@
   :init
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
+(use-package rainbow-csv
+  :load-path "~/projects/rainbow-csv/"
+  :init
+  (add-hook 'csv-mode-hook #'rainbow-csv-mode))
+
 (when window-system
   (use-package pretty-mode
     :ensure t
