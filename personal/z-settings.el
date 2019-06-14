@@ -291,6 +291,7 @@
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-z") 'helm-select-action)
+  (define-key helm-map (kbd "C-r") 'helm-resume)
   ;; Fuzzy matching everywhere
   (setq
    helm-mode-fuzzy-match t
@@ -373,12 +374,31 @@
 (add-hook 'latex-mode-hook 'yas-minor-mode)
 (add-hook 'org-mode-hook 'yas-minor-mode)
 
+(require 'magit)
 (with-eval-after-load "magit"
   (add-hook 'after-save-hook 'magit-after-save-refresh-status))
 
 (use-package forge
   :ensure t
   :after magit)
+
+(defun magit-toggle-whitespace ()
+  (interactive)
+  (if (member "-w" magit-diff-options)
+      (magit-dont-ignore-whitespace)
+    (magit-ignore-whitespace)))
+
+(defun magit-ignore-whitespace ()
+  (interactive)
+  (add-to-list 'magit-diff-options "-w")
+  (magit-refresh))
+
+(defun magit-dont-ignore-whitespace ()
+  (interactive)
+  (setq magit-diff-options (remove "-w" magit-diff-options))
+  (magit-refresh))
+
+(define-key magit-status-mode-map (kbd "Q") 'magit-toggle-whitespace)
 
 (use-package vimish-fold
   :ensure t
@@ -598,3 +618,5 @@
                                   tab-width 4
                                   indent-tabs-mode t
                                   c-default-style "bsd")))
+
+(load-file "zz-overrides.el")

@@ -384,6 +384,7 @@ Use spaceline (powerline) with emacs theme.
     (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
     (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
     (define-key helm-map (kbd "C-z") 'helm-select-action)
+    (define-key helm-map (kbd "C-r") 'helm-resume)
     ;; Fuzzy matching everywhere
     (setq
      helm-mode-fuzzy-match t
@@ -483,12 +484,31 @@ Rich presence for Discord.
 Extra magit settings. I refresh the magit buffer on file save because it's
 annoying to do so manually. Also, use magithub for GitHub integration in Magit.
 #+BEGIN_SRC emacs-lisp
+  (require 'magit)
   (with-eval-after-load "magit"
     (add-hook 'after-save-hook 'magit-after-save-refresh-status))
 
   (use-package forge
     :ensure t
     :after magit)
+
+  (defun magit-toggle-whitespace ()
+    (interactive)
+    (if (member "-w" magit-diff-options)
+        (magit-dont-ignore-whitespace)
+      (magit-ignore-whitespace)))
+
+  (defun magit-ignore-whitespace ()
+    (interactive)
+    (add-to-list 'magit-diff-options "-w")
+    (magit-refresh))
+
+  (defun magit-dont-ignore-whitespace ()
+    (interactive)
+    (setq magit-diff-options (remove "-w" magit-diff-options))
+    (magit-refresh))
+
+  (define-key magit-status-mode-map (kbd "Q") 'magit-toggle-whitespace)
 #+END_SRC
 ** vimish-fold
 #+BEGIN_SRC emacs-lisp
@@ -749,4 +769,8 @@ Convert a buffer and associated decorations to HTML.
                                     tab-width 4
                                     indent-tabs-mode t
                                     c-default-style "bsd")))
+#+END_SRC
+* Overrides
+#+BEGIN_SRC emacs-lisp
+  (load-file "zz-overrides.el")
 #+END_SRC
