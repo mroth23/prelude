@@ -1,4 +1,4 @@
-(setq-default indent-tabs-mode t)
+(setq-default indent-tabs-mode nil)
 (beacon-mode 0)
 (setq-default c-default-style "bsd"
               c-basic-offset 4)

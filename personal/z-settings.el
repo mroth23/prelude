@@ -291,7 +291,7 @@
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-z") 'helm-select-action)
-  (define-key helm-map (kbd "C-r") 'helm-resume)
+  (bind-key* "C-r" 'helm-resume)
   ;; Fuzzy matching everywhere
   (setq
    helm-mode-fuzzy-match t
@@ -357,11 +357,6 @@
 (emms-mode-line 1)
 (emms-playing-time 1)
 (emms-mode-line-cycle 1)
-
-(use-package elcord
-    :ensure t
-    :config
-    (elcord-mode))
 
 (use-package yasnippet
   :ensure t
@@ -612,11 +607,10 @@
         (expand-file-name "~/src/eclipse.jdt.ls/")))
 
 (use-package dap-java :after (lsp-java))
-(use-package lsp-java-treemacs :after (treemacs))
 (add-hook 'java-mode-hook (lambda ()
                             (setq c-basic-offset 4
                                   tab-width 4
                                   indent-tabs-mode t
                                   c-default-style "bsd")))
 
-(load-file "zz-overrides.el")
+(load "~/.emacs.d/personal/zz-overrides")
