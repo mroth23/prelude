@@ -331,8 +331,8 @@ Use spaceline (powerline) with emacs theme.
     (use-package company
       :ensure t
       :config
-      (setq company-minimum-prefix-length 2)
-      (setq company-idle-delay 0.2)
+      (setq company-minimum-prefix-length 3)
+      (setq company-idle-delay 0.4)
       (setq company-tooltip-limit 10)
       (add-hook 'prog-mode-hook 'company-mode))
 
@@ -596,8 +596,26 @@ Note that this is a minor mode. Defer loading until actually used.
 #+END_SRC
 ** Editing
 #+BEGIN_SRC emacs-lisp
-;; Enable subword-mode for all programming modes
-(add-hook 'prog-mode-hook 'subword-mode)
+  ;; Enable subword-mode for all programming modes
+  (add-hook 'prog-mode-hook 'subword-mode)
+
+  (defun disable-smartparens ()
+    (smartparens-mode 0)
+    (electric-pair-mode 1))
+
+  (add-hook 'c-mode-common-hook 'disable-smartparens)
+
+  (use-package aggressive-indent
+    :ensure t)
+  (global-aggressive-indent-mode 1)
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+
+  ;; Don't indent before typing ; in cc-modes
+  (add-to-list
+   'aggressive-indent-dont-indent-if
+   '(and (derived-mode-p 'cc-mode)
+         (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+                             (thing-at-point 'line)))))
 #+END_SRC
 * Major modes
 ** LSP
@@ -654,6 +672,19 @@ I use lsp-mode for language-server-protocol support.
   (use-package clang-format
     :ensure t)
 
+  (defun clang-format-save-hook-for-this-buffer ()
+    "Create a buffer local save hook."
+    (add-hook 'before-save-hook
+              (lambda ()
+                (progn
+                  (when (locate-dominating-file "." ".clang-format")
+                    (clang-format-buffer))
+                  ;; Continue to save.
+                  nil))
+              nil
+              ;; Buffer local hook.
+              t))
+
   ;; (setq lsp-clients-clangd-executable "c:/Program Files/LLVM/bin/clangd.exe")
 
   (add-hook 'c++-mode-hook 'lsp)
@@ -673,7 +704,7 @@ I use lsp-mode for language-server-protocol support.
 
   (setq-default c-default-style "bsd")
 
-  (add-hook 'c-mode-common-hook '(lambda () (c-toggle-hungry-state 1)))
+  (add-hook 'c-mode-common-hook '(lambda () (c-toggle-hungry-state 1) (c-toggle-auto-newline 1) (c-set-style "bsd")))
 #+END_SRC
 ** Python
 #+BEGIN_SRC emacs-lisp
@@ -760,11 +791,20 @@ Convert a buffer and associated decorations to HTML.
           (expand-file-name "~/src/eclipse.jdt.ls/")))
 
   (use-package dap-java :after (lsp-java))
-  (add-hook 'java-mode-hook (lambda ()
-                              (setq c-basic-offset 4
-                                    tab-width 4
-                                    indent-tabs-mode t
-                                    c-default-style "bsd")))
+
+  (defun c-set-java-style ()
+    (interactive)
+    (c-set-style "bsd")
+    (setq c-default-style "bsd")
+    (setq indent-tabs-mode t)
+    (setq tab-width 4)
+    (setq c-basic-offset 4)
+    (add-to-list 'c-hanging-braces-alist '(substatement-open before after)))
+
+  (add-hook 'java-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+
+  (add-hook 'java-mode-hook
+            (lambda () (c-set-java-style)))
 
   (add-hook 'java-mode-hook #'lsp)
 #+END_SRC
