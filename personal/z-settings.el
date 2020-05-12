@@ -24,7 +24,12 @@
   (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
   (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
   ;; Font
-  (set-face-attribute 'default nil :family "Meslo LG M" :height 90))
+  (set-face-attribute 'default nil :family "Meslo LG M" :height 90)
+  ;; UTF-8 as default encoding
+  (set-language-environment "UTF-8"))
+
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
 
 (use-package dashboard
   :ensure t
@@ -239,8 +244,8 @@
 (use-package company
     :ensure t
     :config
-    (setq company-minimum-prefix-length 3)
-    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 2)
+    (setq company-idle-delay 0.2)
     (setq company-tooltip-limit 10)
     (add-hook 'prog-mode-hook 'company-mode))
 
@@ -294,6 +299,7 @@
   (bind-key* "C-r" 'helm-resume)
   ;; Fuzzy matching everywhere
   (setq
+   helm-candidate-number-limit 50
    helm-mode-fuzzy-match t
    helm-completion-in-region-fuzzy-match t
    helm-buffers-fuzzy-matching t
@@ -338,10 +344,11 @@
   :init
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
-(use-package rainbow-csv
-  :load-path "~/projects/rainbow-csv/"
-  :init
-  (add-hook 'csv-mode-hook #'rainbow-csv-mode))
+;; Not yet working!!
+;; (use-package rainbow-csv
+;;   :load-path "~/projects/rainbow-csv/"
+;;   :init
+;;   (add-hook 'csv-mode-hook #'rainbow-csv-mode))
 
 (when window-system
   (use-package pretty-mode
@@ -350,13 +357,6 @@
     (global-pretty-mode t)))
 
 (global-prettify-symbols-mode +1)
-
-(emms-all)
-(emms-default-players)
-
-(emms-mode-line 1)
-(emms-playing-time 1)
-(emms-mode-line-cycle 1)
 
 (use-package yasnippet
   :ensure t
@@ -373,9 +373,9 @@
 (with-eval-after-load "magit"
   (add-hook 'after-save-hook 'magit-after-save-refresh-status))
 
-(use-package forge
-  :ensure t
-  :after magit)
+;; (use-package forge
+;;   :ensure t
+;;   :after magit)
 
 (defun magit-toggle-whitespace ()
   (interactive)
@@ -474,17 +474,21 @@
 (add-hook 'prog-mode-hook 'subword-mode)
 
 (use-package lsp-mode
-  :ensure t)
-(use-package company-lsp
-  :ensure t
+  :hook (
+         (java-mode . lsp))
   :config
-  (push 'company-lsp company-backends)
-  (add-hook 'after-init-hook 'global-company-mode)
-  (setq lsp-auto-guess-root t
-        lsp-print-io t))
+  (setq lsp-enable-on-type-formatting nil
+        lsp-enable-indentation nil)
+  :ensure t)
+
+(use-package helm-lsp
+  :ensure t
+  :commands helm-lsp-workspace-symbol)
 
 (use-package lsp-ui
-  :ensure t)
+  :ensure t
+  :commands lsp-ui-mode)
+
 (use-package dap-mode
   :ensure t :after lsp-mode
   :config
@@ -493,20 +497,24 @@
 
 ;; Some keybinds for lsp-ui.
 (with-eval-after-load 'lsp-ui
-(define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-(define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-(define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
-(define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
-(define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
-(define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
-(define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
-(define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
-(define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point))
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point))
 
 (setq lsp-ui-sideline-enable t)
 (setq lsp-ui-doc-enable t)
+
 (setq lsp-ui-peek-enable t)
 (setq lsp-ui-peek-always-show t)
+
+;; Company settings with lsp
+(setq lsp-prefer-capf t)
 
 ;; Some C/C++ settings
 (require 'lsp-mode)
@@ -533,7 +541,6 @@
 
 (setq-default c-default-style "bsd")
 
-(add-hook 'c-mode-common-hook '(lambda () (c-toggle-auto-newline 1)))
 (add-hook 'c-mode-common-hook '(lambda () (c-toggle-hungry-state 1)))
 
 ;; yasnippet
@@ -598,8 +605,6 @@
 (use-package lsp-java
   :ensure t
   :after lsp
-  :init
-  (add-hook 'java-mode-hook 'lsp)
   :config
   (setq lsp-java-server-install-dir
         (expand-file-name "~/src/eclipse.jdt.ls.server/")
@@ -612,5 +617,7 @@
                                   tab-width 4
                                   indent-tabs-mode t
                                   c-default-style "bsd")))
+
+(add-hook 'java-mode-hook #'lsp)
 
 (load "~/.emacs.d/personal/zz-overrides")
