@@ -26,7 +26,18 @@
   ;; Font
   (set-face-attribute 'default nil :family "Meslo LG M" :height 90)
   ;; UTF-8 as default encoding
-  (set-language-environment "UTF-8"))
+  (set-language-environment "UTF-8")
+
+  ;; make PC keyboard's Win key or other to type Super or Hyper, for emacs running on Windows.
+  (setq w32-pass-lwindow-to-system nil)
+  (setq w32-lwindow-modifier 'super) ; Left Windows key
+
+  (setq w32-pass-rwindow-to-system nil)
+  (setq w32-rwindow-modifier 'super) ; Right Windows key
+
+  (setq w32-pass-apps-to-system nil)
+  (setq w32-apps-modifier 'hyper) ; Menu/App key
+  )
 
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
@@ -245,7 +256,7 @@
     :ensure t
     :config
     (setq company-minimum-prefix-length 3)
-    (setq company-idle-delay 0.4)
+    (setq company-idle-delay 0.5)
     (setq company-tooltip-limit 10)
     (add-hook 'prog-mode-hook 'company-mode))
 
@@ -479,24 +490,26 @@
 
 (add-hook 'c-mode-common-hook 'disable-smartparens)
 
-(use-package aggressive-indent
-  :ensure t)
-(global-aggressive-indent-mode 1)
-(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+;; (use-package aggressive-indent
+;;   :ensure t)
+;; (global-aggressive-indent-mode 1)
+;; (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
 
-;; Don't indent before typing ; in cc-modes
-(add-to-list
- 'aggressive-indent-dont-indent-if
- '(and (derived-mode-p 'cc-mode)
-       (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-                           (thing-at-point 'line)))))
+;; ;; Don't indent before typing ; in cc-modes
+;; (add-to-list
+;;  'aggressive-indent-dont-indent-if
+;;  '(and (derived-mode-p 'cc-mode)
+;;        (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+;;                           (thing-at-point 'line)))))
 
 (use-package lsp-mode
   :hook (
          (java-mode . lsp))
   :config
   (setq lsp-enable-on-type-formatting nil
-        lsp-enable-indentation nil)
+        lsp-enable-indentation nil
+        lsp-enable-file-watchers nil)
+  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
   :ensure t)
 
 (use-package helm-lsp
@@ -505,7 +518,15 @@
 
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode)
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-enable t
+        lsp-ui-sideline-delay 3
+        lsp-ui-sideline-update-mode 'line
+        lsp-ui-peek-enable nil
+        lsp-ui-peek-always-show t
+        lsp-ui-doc-enable nil
+        lsp-ui-doc-delay 10))
 
 (use-package dap-mode
   :ensure t :after lsp-mode
@@ -513,23 +534,24 @@
   (dap-mode t)
   (dap-ui-mode t))
 
+;; Some keybinds for lsp.
+(with-eval-after-load 'lsp
+  (define-key lsp-mode-map (kbd "C-c l o") 'lsp-organize-imports)
+  (define-key lsp-mode-map (kbd "C-c l r") 'lsp-rename)
+  (define-key lsp-mode-map (kbd "C-c l x") 'lsp-restart-workspace)
+  (define-key lsp-mode-map (kbd "C-c l d") 'lsp-describe-thing-at-point)
+  (define-key lsp-mode-map (kbd "C-c l h") 'lsp-treemacs-call-hierarchy))
+
 ;; Some keybinds for lsp-ui.
 (with-eval-after-load 'lsp-ui
   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-restart-workspace)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
-  (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point))
-
-(setq lsp-ui-sideline-enable t)
-(setq lsp-ui-doc-enable t)
-
-(setq lsp-ui-peek-enable t)
-(setq lsp-ui-peek-always-show t)
+  (define-key lsp-ui-mode-map (kbd "C-c l .") 'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map (kbd "C-c l ?") 'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c l w") 'lsp-ui-peek-find-workspace-symbol)
+  (define-key lsp-ui-mode-map (kbd "C-c l i") 'lsp-ui-peek-find-implementation)
+  (define-key lsp-ui-mode-map (kbd "M-#")     'lsp-ui-doc-show)
+  (define-key lsp-ui-mode-map (kbd "C-c l m") 'lsp-ui-imenu))
 
 ;; Company settings with lsp
 (setq lsp-prefer-capf t)
@@ -640,7 +662,9 @@
   (setq lsp-java-server-install-dir
         (expand-file-name "~/src/eclipse.jdt.ls.server/")
         lsp-java-workspace-dir
-        (expand-file-name "~/src/eclipse.jdt.ls/")))
+        (expand-file-name "~/src/eclipse.jdt.ls/")
+        lsp-java-format-enabled nil
+        lsp-java-autobuild-enabled nil))
 
 (use-package dap-java :after (lsp-java))
 
@@ -653,7 +677,7 @@
   (setq c-basic-offset 4)
   (add-to-list 'c-hanging-braces-alist '(substatement-open before after)))
 
-(add-hook 'java-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+;;  (add-hook 'java-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
 
 (add-hook 'java-mode-hook
           (lambda () (c-set-java-style)))
