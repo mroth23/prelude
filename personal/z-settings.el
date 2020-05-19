@@ -71,19 +71,6 @@
 (use-package hydra
   :ensure t)
 
-;; Custom shortcut to open this file.
-(defun config-visit ()
-  (interactive)
-  (find-file "~/.emacs.d/personal/z-settings.org"))
-
-(global-set-key (kbd "C-c v c") 'config-visit)
-
-(defun config-reload ()
-  (interactive)
-  (org-babel-load-file "~/.emacs.d/personal/z-settings.org"))
-
-(global-set-key (kbd "C-c v r") 'config-reload)
-
 (key-chord-define-global "xf" 'iy-go-to-char)
 (key-chord-define-global "xd" 'iy-go-to-char-backward)
 
@@ -200,6 +187,21 @@
 
 (global-set-key (kbd "C-c x a") 'all-over-the-screen)
 
+;; Custom shortcut to open this file.
+(defun config-visit ()
+  (interactive)
+  (find-file "~/.emacs.d/personal/z-settings.org"))
+
+(global-set-key (kbd "C-c v c") 'config-visit)
+
+;; Reload config file
+(defun config-reload ()
+  (interactive)
+  (org-babel-load-file "~/.emacs.d/personal/z-settings.org"))
+
+(global-set-key (kbd "C-c v r") 'config-reload)
+
+;; Visit package list
 (defun visit-package-list-buffer ()
   (interactive)
   (crux-start-or-switch-to (lambda ()
@@ -207,6 +209,14 @@
                            "*Packages*"))
 
 (global-set-key (kbd "C-c v p") 'visit-package-list-buffer)
+
+(defun xref-pop-recenter ()
+  "Like xref-pop-marker-stack, but recenters the screen around the cursor after jumping to the position."
+  (interactive)
+  (xref-pop-marker-stack)
+  (recenter-top-bottom))
+
+(global-set-key (kbd "M-,") 'xref-pop-recenter)
 
 ;; Bind avy-copy-line. Uses x d because it actually duplicates a line.
 (global-set-key (kbd "C-c x d") 'avy-copy-line)
@@ -484,23 +494,18 @@
 ;; Enable subword-mode for all programming modes
 (add-hook 'prog-mode-hook 'subword-mode)
 
+;; I never got smartparens to work properly with cc-mode (formatting etc). So I use the builtins instead, which work nicely.
 (defun disable-smartparens ()
   (smartparens-mode 0)
   (electric-pair-mode 1))
 
 (add-hook 'c-mode-common-hook 'disable-smartparens)
 
-;; (use-package aggressive-indent
-;;   :ensure t)
-;; (global-aggressive-indent-mode 1)
-;; (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+;; String-edit: Edit strings in separate buffer to avoid escape nightmares
+(use-package string-edit
+  :ensure t)
 
-;; ;; Don't indent before typing ; in cc-modes
-;; (add-to-list
-;;  'aggressive-indent-dont-indent-if
-;;  '(and (derived-mode-p 'cc-mode)
-;;        (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-;;                           (thing-at-point 'line)))))
+(define-key c-mode-base-map (kbd "C-c '") 'string-edit-at-point)
 
 (use-package lsp-mode
   :hook (
@@ -524,7 +529,7 @@
         lsp-ui-sideline-delay 3
         lsp-ui-sideline-update-mode 'line
         lsp-ui-peek-enable nil
-        lsp-ui-peek-always-show t
+        lsp-ui-peek-always-show nil
         lsp-ui-doc-enable nil
         lsp-ui-doc-delay 10))
 
