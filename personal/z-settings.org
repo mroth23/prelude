@@ -81,8 +81,15 @@ Similar to Mac, special keybinds are enabled:
 #+END_SRC
 ** Performance
 #+BEGIN_SRC emacs-lisp
-  (setq gc-cons-threshold 100000000)
-  (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  ;; Instead of setting gc-cons-threshold, use gcmh.
+  (use-package gcmh
+    :ensure t
+    :init
+    (setq gcmh-high-cons-threshold 50000000
+          gcmh-verbose nil
+          gcmh-idle-delay 15)
+    :config
+    (gcmh-mode 1))
 #+END_SRC
 ** Dashboard
 #+BEGIN_SRC emacs-lisp
@@ -645,11 +652,20 @@ I use lsp-mode for language-server-protocol support.
   (use-package lsp-mode
     :hook (
            (java-mode . lsp))
-    :config
+    :bind (:map lsp-mode-map
+           ("C-c l" . lsp-command-map))
+    :init
     (setq lsp-enable-on-type-formatting nil
           lsp-enable-indentation nil
-          lsp-enable-file-watchers nil)
-    (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+          lsp-enable-file-watchers nil
+          lsp-enable-folding nil
+          lsp-enable-text-document-color nil
+          lsp-enable-semantic-highlighting nil
+          lsp-enable-links nil
+          lsp-prefer-capf t)
+    :config
+    (setq-local read-process-output-max (* 1024 1024))
+    (setq-local gcmh-high-cons-threshold (* 2 gcmh-high-cons-threshold))
     :ensure t)
 
   (use-package helm-lsp
@@ -692,9 +708,6 @@ I use lsp-mode for language-server-protocol support.
     (define-key lsp-ui-mode-map (kbd "C-c l i") 'lsp-ui-peek-find-implementation)
     (define-key lsp-ui-mode-map (kbd "M-#")     'lsp-ui-doc-show)
     (define-key lsp-ui-mode-map (kbd "C-c l m") 'lsp-ui-imenu))
-
-  ;; Company settings with lsp
-  (setq lsp-prefer-capf t)
 #+END_SRC
 ** C/C++
 #+BEGIN_SRC emacs-lisp
