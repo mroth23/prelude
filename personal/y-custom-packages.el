@@ -1,11 +1,2 @@
 (prelude-require-packages
- '(cl-lib
-   dot-mode
-   emms
-   emms-mode-line-cycle
-   fancy-battery
-   flycheck-clang-analyzer
-   iy-go-to-char
-   multiple-cursors
-   switch-window
-   use-package))
+ '(use-package))

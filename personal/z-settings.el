@@ -39,17 +39,24 @@
   (setq w32-apps-modifier 'hyper) ; Menu/App key
   )
 
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
+;; Instead of setting gc-cons-threshold, use gcmh.
+(use-package gcmh
+  :ensure t
+  :init
+  (setq gcmh-high-cons-threshold 50000000
+        gcmh-verbose nil
+        gcmh-idle-delay 15)
+  :config
+  (gcmh-mode 1))
 
 (use-package dashboard
   :ensure t
   :config
-    (dashboard-setup-startup-hook)
-    (setq dashboard-items '((recents  . 5)
-                            (projects . 5)))
-    (setq dashboard-banner-logo-title "")
-    (add-to-list 'dashboard-items '(agenda) t))
+  (dashboard-setup-startup-hook)
+  (setq dashboard-items '((recents  . 5)
+                          (projects . 5)))
+  (setq dashboard-banner-logo-title "")
+  (add-to-list 'dashboard-items '(agenda) t))
 
 (setq projectile-indexing-method 'alien
       projectile-generic-command "fd . -0 --no-ignore-vcs"
@@ -66,15 +73,20 @@
 
 (if (eq system-type 'windows-nt)
     (pixel-scroll-mode -1)
-    (pixel-scroll-mode 1))
+  (pixel-scroll-mode 1))
+
+(use-package iy-go-to-char
+  :ensure t
+  :config
+  (key-chord-define-global "xf" 'iy-go-to-char)
+  (key-chord-define-global "xd" 'iy-go-to-char-backward))
 
 (use-package hydra
   :ensure t)
 
-(key-chord-define-global "xf" 'iy-go-to-char)
-(key-chord-define-global "xd" 'iy-go-to-char-backward)
-
-;; switch-window settings
+;; TODO: move everything here into use-package
+(use-package switch-window
+  :ensure t)
 ;; Override global key bindings for switching windows.
 (global-set-key (kbd "C-x o") 'switch-window)
 (global-set-key (kbd "C-x 1") 'switch-window-then-maximize)
@@ -111,52 +123,54 @@
 (global-set-key
  (kbd "C-M-o")
  (defhydra hydra-window (:color red
-                         :columns nil)
-  "window"
-  ("h" windmove-left nil)
-  ("j" windmove-down nil)
-  ("k" windmove-up nil)
-  ("l" windmove-right nil)
-  ("H" hydra-move-splitter-left nil)
-  ("J" hydra-move-splitter-down nil)
-  ("K" hydra-move-splitter-up nil)
-  ("L" hydra-move-splitter-right nil)
-  ("v" (lambda ()
-         (interactive)
-         (split-window-right)
-         (windmove-right))
-   "vert")
-  ("x" (lambda ()
-         (interactive)
-         (split-window-below)
-         (windmove-down))
-   "horz")
-  ("t" transpose-frame "'" :exit t)
-  ("o" delete-other-windows "one" :exit t)
-  ("a" ace-window "ace")
-  ("s" ace-swap-window "swap")
-  ("d" ace-delete-window "del")
-  ("i" ace-maximize-window "ace-one" :exit t)
-  ("b" ido-switch-buffer "buf")
-  ("m" headlong-bookmark-jump "bmk")
-  ("q" nil "cancel")
-  ("u" (progn (winner-undo) (setq this-command 'winner-undo)) "undo")
-  ("f" nil)))
+                                :columns nil)
+   "window"
+   ("h" windmove-left nil)
+   ("j" windmove-down nil)
+   ("k" windmove-up nil)
+   ("l" windmove-right nil)
+   ("H" hydra-move-splitter-left nil)
+   ("J" hydra-move-splitter-down nil)
+   ("K" hydra-move-splitter-up nil)
+   ("L" hydra-move-splitter-right nil)
+   ("v" (lambda ()
+          (interactive)
+          (split-window-right)
+          (windmove-right))
+    "vert")
+   ("x" (lambda ()
+          (interactive)
+          (split-window-below)
+          (windmove-down))
+    "horz")
+   ("t" transpose-frame "'" :exit t)
+   ("o" delete-other-windows "one" :exit t)
+   ("a" ace-window "ace")
+   ("s" ace-swap-window "swap")
+   ("d" ace-delete-window "del")
+   ("i" ace-maximize-window "ace-one" :exit t)
+   ("b" ido-switch-buffer "buf")
+   ("m" headlong-bookmark-jump "bmk")
+   ("q" nil "cancel")
+   ("u" (progn (winner-undo) (setq this-command 'winner-undo)) "undo")
+   ("f" nil)))
 
 ;; Multiple cursors
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-
-;; If nothing is selected, pick the symbol under the cursor.
-(global-set-key (kbd "C->") 'mc/mark-next-like-this-symbol)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this-symbol)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "H-SPC") 'set-rectangular-region-anchor)
-
-;; Special commands for inserting numbers or chars, sorting and reversing.
-(global-set-key (kbd "C-c x n") 'mc/insert-numbers)
-(global-set-key (kbd "C-c x l") 'mc/insert-letters)
-(global-set-key (kbd "C-c x s") 'mc/sort-regions)
-(global-set-key (kbd "C-c x r") 'mc/reverse-regions)
+(use-package multiple-cursors
+  :ensure t
+  :demand t
+  :bind
+  (("C-S-c C-S-c" . mc/edit-lines)
+   ;; If nothing is selected, pick the symbol under the cursor.
+   ("C->" . mc/mark-next-like-this-symbol)
+   ("C-<" . mc/mark-previous-like-this-symbol)
+   ("C-c C-<" . mc/mark-all-like-this)
+   ("H-SPC" . set-rectangular-region-anchor)
+   ;; Special commands for inserting numbers or chars, sorting and reversing.
+   ("C-c x n" . mc/insert-numbers)
+   ("C-c x l" . mc/insert-letters)
+   ("C-c x s" . mc/sort-regions)
+   ("C-c x r" . mc/reverse-regions)))
 
 (defun daedreth/kill-inner-word ()
   "Kills the entire word your cursor is in. Equivalent to 'ciw' in vim."
@@ -234,11 +248,11 @@
   :ensure t
   :config
   (require 'spaceline-config)
-    (setq spaceline-buffer-encoding-abbrev-p nil)
-    (setq spaceline-line-column-p nil)
-    (setq spaceline-line-p nil)
-    (setq powerline-default-separator (quote arrow))
-    (spaceline-emacs-theme))
+  (setq spaceline-buffer-encoding-abbrev-p nil)
+  (setq spaceline-line-column-p nil)
+  (setq spaceline-line-p nil)
+  (setq powerline-default-separator (quote arrow))
+  (spaceline-emacs-theme))
 
 (setq display-time-24hr-format t)
 (setq display-time-format " %H:%M ")
@@ -250,11 +264,11 @@
 (use-package fancy-battery
   :ensure t
   :config
-    (setq fancy-battery-show-percentage t)
-    (setq battery-update-interval 15)
-    (if window-system
+  (setq fancy-battery-show-percentage t)
+  (setq battery-update-interval 15)
+  (if window-system
       (fancy-battery-mode)
-      (display-battery-mode)))
+    (display-battery-mode)))
 
 (setq line-number-mode t)
 (setq column-number-mode t)
@@ -263,12 +277,12 @@
 (spaceline-toggle-minor-modes-off)
 
 (use-package company
-    :ensure t
-    :config
-    (setq company-minimum-prefix-length 3)
-    (setq company-idle-delay 0.5)
-    (setq company-tooltip-limit 10)
-    (add-hook 'prog-mode-hook 'company-mode))
+  :ensure t
+  :config
+  (setq company-minimum-prefix-length 3)
+  (setq company-idle-delay 0.5)
+  (setq company-tooltip-limit 10)
+  (add-hook 'prog-mode-hook 'company-mode))
 
 (with-eval-after-load 'company
   (define-key company-active-map (kbd "M-n") nil)
@@ -276,9 +290,9 @@
   (define-key company-active-map (kbd "C-n") #'company-select-next)
   (define-key company-active-map (kbd "C-p") #'company-select-previous))
 
-  ;; (add-to-list 'company-backends 'company-dabbrev-code)
-  ;; (add-to-list 'company-backends 'company-yasnippet)
-  ;; (add-to-list 'company-backends 'company-files)
+;; (add-to-list 'company-backends 'company-dabbrev-code)
+;; (add-to-list 'company-backends 'company-yasnippet)
+;; (add-to-list 'company-backends 'company-files)
 
 (global-display-line-numbers-mode)
 
@@ -307,9 +321,11 @@
 (defun swiper-region ()
   "Use current region if active for swiper search"
   (interactive)
-  (if (use-region-p)
-      (swiper (format "%s" (buffer-substring (region-beginning) (region-end))))
-    (swiper)))
+  (if (not (use-region-p))
+      (swiper)
+    (deactivate-mark)
+    (swiper (format "%s" (buffer-substring (region-beginning) (region-end))))))
+
 (global-set-key (kbd "C-s") 'swiper-region)
 
 (with-eval-after-load 'helm
@@ -353,12 +369,10 @@
   )
 (setq helm-ag-base-command "ag -U --vimgrep")
 
-;; Create shortcut for things like the scratch buffer.
-(global-set-key [(control ?.)] (lambda () (interactive) (dot-mode 1)
-                                 (message "Dot mode activated.")))
-
-;; Turn on all the time.
-(add-hook 'find-file-hooks 'dot-mode-on)
+(use-package dot-mode
+  :ensure t
+  :config
+  (global-dot-mode 1))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -390,13 +404,16 @@
 (add-hook 'latex-mode-hook 'yas-minor-mode)
 (add-hook 'org-mode-hook 'yas-minor-mode)
 
-(require 'magit)
-(with-eval-after-load "magit"
-  (add-hook 'after-save-hook 'magit-after-save-refresh-status))
+(use-package magit
+  :defer t
+  :ensure t
+  :config
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status)
+  (define-key magit-status-mode-map (kbd "Q") 'magit-toggle-whitespace))
 
-;; (use-package forge
-;;   :ensure t
-;;   :after magit)
+(use-package forge
+  :ensure t
+  :after magit)
 
 (defun magit-toggle-whitespace ()
   (interactive)
@@ -414,15 +431,13 @@
   (setq magit-diff-options (remove "-w" magit-diff-options))
   (magit-refresh))
 
-(define-key magit-status-mode-map (kbd "Q") 'magit-toggle-whitespace)
-
 (use-package vimish-fold
   :ensure t
   :config (add-hook 'prog-mode-hook 'vimish-fold-mode))
 
 (bind-key "s-a" (defhydra hydra-vimish-fold
                   (:color blue
-                   :columns 3)
+                          :columns 3)
                   "fold"
                   ("a" vimish-fold-avy "avy")
                   ("d" vimish-fold-delete "del")
@@ -489,7 +504,7 @@
   :ensure t
   :config
   (setq treemacs-width 50
-    treemacs-indentation 2))
+        treemacs-indentation 2))
 
 ;; Enable subword-mode for all programming modes
 (add-hook 'prog-mode-hook 'subword-mode)
@@ -503,63 +518,95 @@
 
 ;; String-edit: Edit strings in separate buffer to avoid escape nightmares
 (use-package string-edit
-  :ensure t)
+  :ensure t
+  :bind
+  (:map c-mode-base-map
+        ("C-c '" . string-edit-at-point)))
 
-(define-key c-mode-base-map (kbd "C-c '") 'string-edit-at-point)
+;; Unfill - opposite to M-q (fill-paragraph)
+(use-package unfill
+  :ensure t
+  :bind ([remap fill-paragraph] . unfill-toggle))
 
-(use-package lsp-mode
-  :hook (
-         (java-mode . lsp))
-  :config
-  (setq lsp-enable-on-type-formatting nil
-        lsp-enable-indentation nil
-        lsp-enable-file-watchers nil)
-  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
-  :ensure t)
+;; Source: https://github.com/angrybacon/dotemacs/blob/master/dotemacs.org
+(defun me/eval-region-and-kill-mark (beg end)
+  "Execute the region as Lisp code.
+Call `eval-region' and kill mark. Move back to the beginning of the region."
+  (interactive "r")
+  (eval-region beg end)
+  (setq deactivate-mark t)
+  (goto-char beg))
+
+(global-set-key (kbd "C-:") 'me/eval-region-and-kill-mark)
 
 (use-package helm-lsp
   :ensure t
   :commands helm-lsp-workspace-symbol)
 
+(use-package lsp-mode
+  :ensure t
+  :hook
+  ((c++-mode
+    c-mode
+    objc-mode
+    python-mode
+    java-mode) . lsp)
+  :bind
+  (:map lsp-mode-map
+        ("C-c l o" . lsp-organize-imports)
+        ("C-c l r" . lsp-rename)
+        ("C-c l x" . lsp-restart-workspace)
+        ("C-c l d" . lsp-describe-thing-at-point)
+        ("C-c l h" . lsp-treemacs-call-hierarchy))
+  :init
+  (setq
+   lsp-keymap-prefix "C-c l"
+   lsp-enable-on-type-formatting nil
+   lsp-enable-indentation nil
+   lsp-enable-file-watchers nil
+   lsp-enable-folding nil
+   lsp-enable-text-document-color nil
+   lsp-enable-semantic-highlighting nil
+   lsp-enable-links nil
+   lsp-prefer-capf t)
+  :config
+  (setq-local read-process-output-max (* 1024 1024))
+  (setq-local gcmh-high-cons-threshold (* 2 gcmh-high-cons-threshold)))
+
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode
+  :after lsp-mode
+  :demand t
+  :hook
+  ((c++-mode
+    c-mode
+    objc-mode
+    python-mode
+    java-mode) . lsp-ui-mode)
+  :bind
+  (:map lsp-ui-mode-map
+        ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+        ([remap xref-find-references]  . lsp-ui-peek-find-references)
+        ("C-c l ." . lsp-ui-peek-find-definitions)
+        ("C-c l ?" . lsp-ui-peek-find-references)
+        ("C-c l w" . lsp-ui-peek-find-workspace-symbol)
+        ("C-c l i" . lsp-ui-peek-find-implementation)
+        ("M-#"     . lsp-ui-doc-show)
+        ("C-c l m" . lsp-ui-imenu))
   :config
-  (setq lsp-ui-sideline-enable t
-        lsp-ui-sideline-delay 3
+  (setq lsp-ui-sideline-enable nil
         lsp-ui-sideline-update-mode 'line
         lsp-ui-peek-enable nil
         lsp-ui-peek-always-show nil
-        lsp-ui-doc-enable nil
-        lsp-ui-doc-delay 10))
+        lsp-ui-doc-enable nil))
 
 (use-package dap-mode
-  :ensure t :after lsp-mode
+  :ensure t
+  :after lsp-mode
+  :demand t
   :config
   (dap-mode t)
   (dap-ui-mode t))
-
-;; Some keybinds for lsp.
-(with-eval-after-load 'lsp
-  (define-key lsp-mode-map (kbd "C-c l o") 'lsp-organize-imports)
-  (define-key lsp-mode-map (kbd "C-c l r") 'lsp-rename)
-  (define-key lsp-mode-map (kbd "C-c l x") 'lsp-restart-workspace)
-  (define-key lsp-mode-map (kbd "C-c l d") 'lsp-describe-thing-at-point)
-  (define-key lsp-mode-map (kbd "C-c l h") 'lsp-treemacs-call-hierarchy))
-
-;; Some keybinds for lsp-ui.
-(with-eval-after-load 'lsp-ui
-  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c l .") 'lsp-ui-peek-find-definitions)
-  (define-key lsp-ui-mode-map (kbd "C-c l ?") 'lsp-ui-peek-find-references)
-  (define-key lsp-ui-mode-map (kbd "C-c l w") 'lsp-ui-peek-find-workspace-symbol)
-  (define-key lsp-ui-mode-map (kbd "C-c l i") 'lsp-ui-peek-find-implementation)
-  (define-key lsp-ui-mode-map (kbd "M-#")     'lsp-ui-doc-show)
-  (define-key lsp-ui-mode-map (kbd "C-c l m") 'lsp-ui-imenu))
-
-;; Company settings with lsp
-(setq lsp-prefer-capf t)
 
 ;; Some C/C++ settings
 (require 'lsp-mode)
@@ -592,10 +639,15 @@
 (setq lsp-prefer-flymake nil)
 (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
 (setq ccls-args '("--log-file=c:/prj/ccls/ccls.log"))
+
 ;; Use clang for formatting and flycheck in C/C++.
-(flycheck-clang-analyzer-setup)
+(use-package flycheck-clang-analyzer
+  :ensure t
+  :after flycheck
+  :config (flycheck-clang-analyzer-setup))
 
 (global-set-key (kbd "C-c x f") 'clang-format-region)
+(global-set-key (kbd "C-c x F") 'clang-format-buffer)
 
 (setq-default c-default-style "bsd")
 
@@ -609,33 +661,35 @@
           (lambda ()
             (setq-default tab-width 4)))
 
-
 ;; anaconda-mode: It's mostly set up in prelude already.
 
 ;; virtualenvwrapper
 (use-package virtualenvwrapper
+  :defer t
+  :hook python-mode
   :ensure t
   :config
+  ;; virtualenvwrapper init for eshell and interactive shell.
+  (venv-initialize-interactive-shells) ;; if you want interactive shell support
+  (venv-initialize-eshell) ;; if you want eshell support
   (setq projectile-switch-project-action
         '(lambda()
            (venv-projectile-auto-workon)
            (projectile-find-file))))
 
-;; virtualenvwrapper init for eshell and interactive shell.
-(venv-initialize-interactive-shells) ;; if you want interactive shell support
-(venv-initialize-eshell) ;; if you want eshell support
-
 ;; py-isort
 (use-package py-isort
-  :ensure t
-  :config
-  (add-hook 'before-save-hook 'py-isort-before-save))
+  :defer t
+  :hook
+  (python-mode . (lambda () (add-hook 'before-save-hook 'py-isort-before-save)))
+  :ensure t)
 
 ;; yapf
 (use-package yapfify
-  :ensure t
-  :config
-  (add-hook 'python-mode-hook 'yapf-mode))
+  :defer t
+  :hook
+  (python-mode . yapf-mode)
+  :ensure t)
 
 (setq org-src-fontify-natively t
       org-src-tab-acts-natively t
@@ -661,17 +715,19 @@
  cperl-merge-trailing-else nil)
 
 (use-package lsp-java
-  :ensure t
   :after lsp
+  :ensure t
+  :demand t
   :config
-  (setq lsp-java-server-install-dir
-        (expand-file-name "~/src/eclipse.jdt.ls.server/")
-        lsp-java-workspace-dir
-        (expand-file-name "~/src/eclipse.jdt.ls/")
+  (setq lsp-java-server-install-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls.server/")
+        lsp-java-workspace-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls/")
         lsp-java-format-enabled nil
-        lsp-java-autobuild-enabled nil))
+        lsp-java-autobuild-enabled t))
 
-(use-package dap-java :after (lsp-java))
+(add-hook 'java-mode-hook '(lambda () (c-set-java-style) (clang-format-save-hook-for-this-buffer)))
+
+(use-package dap-java
+  :after (lsp-java))
 
 (defun c-set-java-style ()
   (interactive)
@@ -681,12 +737,5 @@
   (setq tab-width 4)
   (setq c-basic-offset 4)
   (add-to-list 'c-hanging-braces-alist '(substatement-open before after)))
-
-;;  (add-hook 'java-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
-
-(add-hook 'java-mode-hook
-          (lambda () (c-set-java-style)))
-
-(add-hook 'java-mode-hook #'lsp)
 
 (load "~/.emacs.d/personal/zz-overrides")
