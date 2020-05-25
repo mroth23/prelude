@@ -277,18 +277,21 @@
 (spaceline-toggle-minor-modes-off)
 
 (use-package company
+  :bind
+  (:map company-active-map
+        ("M-n" . nil)
+        ("M-p" . nil)
+        ("C-n" . company-select-next)
+        ("C-p" . company-select-previous))
+  :hook
+  (prog-mode . company-mode)
   :ensure t
   :config
   (setq company-minimum-prefix-length 3)
   (setq company-idle-delay 0.5)
   (setq company-tooltip-limit 10)
-  (add-hook 'prog-mode-hook 'company-mode))
-
-(with-eval-after-load 'company
-  (define-key company-active-map (kbd "M-n") nil)
-  (define-key company-active-map (kbd "M-p") nil)
-  (define-key company-active-map (kbd "C-n") #'company-select-next)
-  (define-key company-active-map (kbd "C-p") #'company-select-previous))
+  (setq company-backends (delete 'company-semantic company-backends))
+  (add-to-list 'company-backends 'company-dabbrev))
 
 ;; (add-to-list 'company-backends 'company-dabbrev-code)
 ;; (add-to-list 'company-backends 'company-yasnippet)
@@ -318,7 +321,10 @@
 (use-package swiper
   :ensure t)
 
-(defun swiper-region ()
+;; Swiper do-what-I-mean
+;; When text is marked, search for that.
+;; When nothing is marked, search for input.
+(defun swiper-dwim ()
   "Use current region if active for swiper search"
   (interactive)
   (if (not (use-region-p))
@@ -326,13 +332,14 @@
     (deactivate-mark)
     (swiper (format "%s" (buffer-substring (region-beginning) (region-end))))))
 
-(global-set-key (kbd "C-s") 'swiper-region)
+(global-set-key (kbd "C-s") 'swiper-dwim)
 
 (with-eval-after-load 'helm
   ;; Use tab to expand stuff in helm. (Sorry)
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
   (define-key helm-map (kbd "C-z") 'helm-select-action)
+  (global-set-key (kbd "C-h SPC") 'helm-all-mark-rings)
   (bind-key* "C-r" 'helm-resume)
   ;; Fuzzy matching everywhere
   (setq
@@ -506,6 +513,11 @@
   (setq treemacs-width 50
         treemacs-indentation 2))
 
+;; Global semantic mode
+(semantic-mode 1)
+(global-semantic-stickyfunc-mode 1)
+(global-semantic-highlight-func-mode 1)
+
 ;; Enable subword-mode for all programming modes
 (add-hook 'prog-mode-hook 'subword-mode)
 
@@ -531,7 +543,7 @@
 ;; Source: https://github.com/angrybacon/dotemacs/blob/master/dotemacs.org
 (defun me/eval-region-and-kill-mark (beg end)
   "Execute the region as Lisp code.
-Call `eval-region' and kill mark. Move back to the beginning of the region."
+    Call `eval-region' and kill mark. Move back to the beginning of the region."
   (interactive "r")
   (eval-region beg end)
   (setq deactivate-mark t)
@@ -561,6 +573,7 @@ Call `eval-region' and kill mark. Move back to the beginning of the region."
   :init
   (setq
    lsp-keymap-prefix "C-c l"
+   lsp-eldoc-render-all nil
    lsp-enable-on-type-formatting nil
    lsp-enable-indentation nil
    lsp-enable-file-watchers nil
@@ -568,6 +581,7 @@ Call `eval-region' and kill mark. Move back to the beginning of the region."
    lsp-enable-text-document-color nil
    lsp-enable-semantic-highlighting nil
    lsp-enable-links nil
+   lsp-signature-auto-activate nil
    lsp-prefer-capf t)
   :config
   (setq-local read-process-output-max (* 1024 1024))
@@ -722,7 +736,9 @@ Call `eval-region' and kill mark. Move back to the beginning of the region."
   (setq lsp-java-server-install-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls.server/")
         lsp-java-workspace-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls/")
         lsp-java-format-enabled nil
-        lsp-java-autobuild-enabled t))
+        lsp-java-signature-help-enabled nil
+        lsp-java-completion-overwrite t
+        lsp-java-autobuild-enabled nil))
 
 (add-hook 'java-mode-hook '(lambda () (c-set-java-style) (clang-format-save-hook-for-this-buffer)))
 
