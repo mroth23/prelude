@@ -405,11 +405,52 @@
   :config
   (use-package yasnippet-snippets
     :ensure t)
+  (add-to-list 'yas-snippet-dirs "~/.emacs.d/personal/snippets" t)
   (yas-reload-all))
+
+(use-package auto-yasnippet
+  :ensure t
+  :after yasnippet
+  :bind
+  ("C-o" . aya-open-line)
+  :config
+  (setq aya-persist-snippets-dir "~/.emacs.d/personal/snippets"))
 
 (add-hook 'prog-mode-hook 'yas-minor-mode)
 (add-hook 'latex-mode-hook 'yas-minor-mode)
 (add-hook 'org-mode-hook 'yas-minor-mode)
+
+;; Adapted from abo-abo/function-args
+(defun moo-javadoc ()
+  "Generate a javadoc yasnippet and expand it with `aya-expand'.
+The point should be inside the method to generate docs for"
+  (interactive)
+  (move-beginning-of-line nil)
+  (let ((tag (semantic-current-tag)))
+    (unless (semantic-tag-of-class-p tag 'function)
+      (error "Expected function, got %S" tag))
+    (let* ((name (semantic-tag-name tag))
+           (attrs (semantic-tag-attributes tag))
+           (args (plist-get attrs :arguments))
+           (ord 1))
+      (setq aya-current
+            (format
+             "/**
+* $1
+*
+%s
+* @return $%d
+*/"
+             (mapconcat
+              (lambda (x)
+                (format "* @param %s $%d"
+                        (car x) (incf ord)))
+              args
+              "\n")
+             (incf ord)))
+      (senator-previous-tag)
+      (crux-smart-open-line-above)
+      (aya-expand))))
 
 (use-package magit
   :defer t
@@ -550,6 +591,8 @@
   (goto-char beg))
 
 (global-set-key (kbd "C-:") 'me/eval-region-and-kill-mark)
+(global-set-key (kbd "M-n") 'move-text-down)
+(global-set-key (kbd "M-p") 'move-text-up)
 
 (use-package helm-lsp
   :ensure t
@@ -565,6 +608,7 @@
     java-mode) . lsp)
   :bind
   (:map lsp-mode-map
+        ("C-c l j" . moo-javadoc)
         ("C-c l o" . lsp-organize-imports)
         ("C-c l r" . lsp-rename)
         ("C-c l x" . lsp-restart-workspace)
@@ -733,6 +777,7 @@
   :ensure t
   :demand t
   :config
+  ()
   (setq lsp-java-server-install-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls.server/")
         lsp-java-workspace-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls/")
         lsp-java-format-enabled nil
@@ -740,7 +785,7 @@
         lsp-java-completion-overwrite t
         lsp-java-autobuild-enabled nil))
 
-(add-hook 'java-mode-hook '(lambda () (c-set-java-style) (clang-format-save-hook-for-this-buffer)))
+(add-hook 'java-mode-hook '(lambda () (c-set-java-style)))
 
 (use-package dap-java
   :after (lsp-java))
