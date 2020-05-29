@@ -36,7 +36,7 @@
   (setq w32-rwindow-modifier 'super) ; Right Windows key
 
   (setq w32-pass-apps-to-system nil)
-  (setq w32-apps-modifier 'hyper) ; Menu/App key
+  (setq w32-apps-modifier 'super) ; Menu/App key
   )
 
 ;; Instead of setting gc-cons-threshold, use gcmh.
@@ -282,14 +282,17 @@
         ("M-n" . nil)
         ("M-p" . nil)
         ("C-n" . company-select-next)
-        ("C-p" . company-select-previous))
+        ("C-p" . company-select-previous)
+        ("<return>" . nil)
+        ("RET" . nil)
+        ("<tab>" . company-complete-selection))
   :hook
   (prog-mode . company-mode)
   :ensure t
   :config
   (setq company-minimum-prefix-length 3)
-  (setq company-idle-delay 0.5)
-  (setq company-tooltip-limit 10)
+  (setq company-idle-delay 0.4)
+  (setq company-tooltip-limit 15)
   (setq company-backends (delete 'company-semantic company-backends))
   (add-to-list 'company-backends 'company-dabbrev))
 
@@ -383,8 +386,8 @@
 
 (use-package rainbow-delimiters
   :ensure t
-  :init
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+  :hook
+  (prog-mode . rainbow-delimiters-mode))
 
 ;; Not yet working!!
 ;; (use-package rainbow-csv
@@ -453,10 +456,11 @@ The point should be inside the method to generate docs for"
       (aya-expand))))
 
 (use-package magit
-  :defer t
   :ensure t
+  :defer t
+  ;; :hook
+  ;; (after-save . magit-after-save-refresh-status)
   :config
-  (add-hook 'after-save-hook 'magit-after-save-refresh-status)
   (define-key magit-status-mode-map (kbd "Q") 'magit-toggle-whitespace))
 
 (use-package forge
@@ -538,15 +542,16 @@ The point should be inside the method to generate docs for"
 ;; (pdf-tools-install)
 
 (use-package outshine
+  :defer t
   :ensure t
-  :config
-  (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
-  (add-hook 'LaTeX-mode-hook 'outshine-mode)
-  (add-hook 'picolisp-mode-hook 'outshine-mode)
-  (add-hook 'clojure-mode-hook 'outshine-mode)
-  (add-hook 'ess-mode-hook 'outshine-mode)
-  (add-hook 'ledger-mode-hook 'outshine-mode)
-  (add-hook 'python-mode-hook 'outshine-mode))
+  :hook
+  ((emacs-lisp-mode . outshine-mode)
+   (LaTeX-mode . outshine-mode)
+   (picolisp-mode . outshine-mode)
+   (clojure-mode . outshine-mode)
+   (ess-mode . outshine-mode)
+   (ledger-mode . outshine-mode)
+   (python-mode . outshine-mode)))
 
 (use-package treemacs
   :ensure t
@@ -773,14 +778,10 @@ The point should be inside the method to generate docs for"
  cperl-merge-trailing-else nil)
 
 (use-package lsp-java
-  :after lsp
   :ensure t
   :demand t
   :config
-  ()
-  (setq lsp-java-server-install-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls.server/")
-        lsp-java-workspace-dir (expand-file-name "~/.emacs.d/lsp/eclipse.jdt.ls/")
-        lsp-java-format-enabled nil
+  (setq lsp-java-format-enabled nil
         lsp-java-signature-help-enabled nil
         lsp-java-completion-overwrite t
         lsp-java-autobuild-enabled nil))
