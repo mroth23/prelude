@@ -29,8 +29,8 @@
 ;; (require 'prelude-lsp) ;; Disabled for own lsp-mode config.
 ;; (require 'prelude-ocaml)
 (require 'prelude-org) ;; Org-mode helps you keep TODO lists, notes and more
-(require 'prelude-perl)
-(require 'prelude-python)
+;; (require 'prelude-perl) ;; Disabled for own cperl-mode config.
+;; (require 'prelude-python) ;; Disabled to use pyls
 (require 'prelude-ruby)
 (require 'prelude-scala)
 (require 'prelude-scheme)

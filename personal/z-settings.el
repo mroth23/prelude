@@ -294,6 +294,8 @@
   (setq company-idle-delay 0.4)
   (setq company-tooltip-limit 15)
   (setq company-backends (delete 'company-semantic company-backends))
+  (setq company-tooltip-align-annotations t)
+  (setq company-tooltip-flip-when-above t)
   (add-to-list 'company-backends 'company-dabbrev))
 
 ;; (add-to-list 'company-backends 'company-dabbrev-code)
@@ -406,6 +408,7 @@
 (use-package yasnippet
   :ensure t
   :config
+  (add-to-list 'yas-snippet-dirs "~/.emacs.d/personal/snippets")
   (use-package yasnippet-snippets
     :ensure t)
   (add-to-list 'yas-snippet-dirs "~/.emacs.d/personal/snippets" t)
@@ -767,15 +770,31 @@ The point should be inside the method to generate docs for"
 (use-package htmlize
   :ensure t)
 
-(setq-default
- cperl-indent-level 4
- cperl-close-paren-offset -4
- cperl-continued-statement-offset 4
- cperl-indent-parens-as-block t
- cperl-tab-always-indent t
- cperl-extra-newline-before-brace t
- cperl-brace-offset -4
- cperl-merge-trailing-else nil)
+(defalias 'perl-mode 'cperl-mode)
+
+(defun c-set-cperl-style ()
+  (interactive)
+  ;; Indentation
+  (setq cperl-indent-level 4)
+  (setq cperl-indent-parens-as-block t)
+  (setq cperl-continued-statement-offset 4)
+  (setq cperl-brace-offset -4)
+  (setq cperl-close-paren-offset -4)
+  (setq cperl-extra-newline-before-brace t)
+  (setq cperl-merge-trailing-else nil)
+  (setq cperl-tab-always-indent t)
+  ;; Use font lock but disable invalid face
+  (setq cperl-font-lock t)
+  (setq cperl-invalid-face nil)
+  ;; Auto-newline and electric parens
+  (setq cperl-auto-newline t)
+  (setq cperl-electric-parens nil))
+
+(add-hook 'cperl-mode-hook '(lambda ()
+                              (disable-smartparens)
+                              (c-set-cperl-style)
+                              (c-toggle-hungry-state 1)
+                              (c-toggle-auto-newline 1)))
 
 (use-package lsp-java
   :ensure t
