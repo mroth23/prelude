@@ -481,6 +481,9 @@ Use mood-line.
           helm-flx-for-helm-locate t) ;; nil by default
     )
   (setq helm-ag-base-command "ag -U --vimgrep")
+
+  (use-package helm-rg
+    :ensure t)
 #+END_SRC
 ** dot-mode
 #+BEGIN_SRC emacs-lisp
@@ -699,6 +702,14 @@ Note that this is a minor mode. Defer loading until actually used.
     :config
     (setq treemacs-width 50
           treemacs-indentation 2))
+#+END_SRC
+** Flycheck
+Remap flycheck to use the prefix "C-c f".
+#+BEGIN_SRC emacs-lisp
+  (define-key flycheck-mode-map flycheck-keymap-prefix nil)
+  (setq flycheck-keymap-prefix (kbd "C-c f"))
+  (define-key flycheck-mode-map flycheck-keymap-prefix
+    flycheck-command-map)
 #+END_SRC
 ** Editing
 This section contains some global(ish) modes and shortcuts where settings are the same across multiple languages etc.
@@ -946,7 +957,7 @@ Snippet for writing elisp like everywhere around this file.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'org-mode-hook 'org-indent-mode)
   (add-to-list 'org-structure-template-alist
-               '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+               '("el" . "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 #+END_SRC
 
 Convert a buffer and associated decorations to HTML.
@@ -1004,6 +1015,19 @@ Convert a buffer and associated decorations to HTML.
     (setq tab-width 4)
     (setq c-basic-offset 4)
     (add-to-list 'c-hanging-braces-alist '(substatement-open before after)))
+
+  (defvar checkstyle-jar "C:\\Users\\roth\\bin\\checkstyle-8.33-all.jar")
+  (defvar checkstyle-cfg "C:\\Users\\roth\\bin\\checkstyle.xml")
+
+  (flycheck-define-checker checkstyle-java
+    "Runs checkstyle"
+    :command ("java" "-jar" (eval checkstyle-jar) "-c" (eval checkstyle-cfg) "-f" "xml" source)
+    :error-parser flycheck-parse-checkstyle
+    :enable t
+    :modes (java-mode))
+
+  (add-to-list 'flycheck-checkers 'checkstyle-java)
+  (flycheck-add-next-checker 'lsp 'checkstyle-java)
 #+END_SRC
 * Overrides
 #+BEGIN_SRC emacs-lisp

@@ -385,6 +385,9 @@
   )
 (setq helm-ag-base-command "ag -U --vimgrep")
 
+(use-package helm-rg
+  :ensure t)
+
 (use-package dot-mode
   :ensure t
   :config
@@ -462,6 +465,7 @@ The point should be inside the method to generate docs for"
       (crux-smart-open-line-above)
       (aya-expand))))
 
+;; Insert a semicolon at the end of the current line, then do crux-smart-open-line
 (defun cc-end-line-with-semicolon ()
   (interactive)
   (move-end-of-line nil)
@@ -571,6 +575,11 @@ The point should be inside the method to generate docs for"
   :config
   (setq treemacs-width 50
         treemacs-indentation 2))
+
+(define-key flycheck-mode-map flycheck-keymap-prefix nil)
+(setq flycheck-keymap-prefix (kbd "C-c f"))
+(define-key flycheck-mode-map flycheck-keymap-prefix
+  flycheck-command-map)
 
 ;; Global semantic mode
 (semantic-mode 1)
@@ -801,7 +810,7 @@ The point should be inside the method to generate docs for"
 
 (add-hook 'org-mode-hook 'org-indent-mode)
 (add-to-list 'org-structure-template-alist
-             '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+             '("el" . "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
 
 (use-package htmlize
   :ensure t)
@@ -851,5 +860,18 @@ The point should be inside the method to generate docs for"
   (setq tab-width 4)
   (setq c-basic-offset 4)
   (add-to-list 'c-hanging-braces-alist '(substatement-open before after)))
+
+(defvar checkstyle-jar "C:\\Users\\roth\\bin\\checkstyle-8.33-all.jar")
+(defvar checkstyle-cfg "C:\\Users\\roth\\bin\\checkstyle.xml")
+
+(flycheck-define-checker checkstyle-java
+  "Runs checkstyle"
+  :command ("java" "-jar" (eval checkstyle-jar) "-c" (eval checkstyle-cfg) "-f" "xml" source)
+  :error-parser flycheck-parse-checkstyle
+  :enable t
+  :modes (java-mode))
+
+(add-to-list 'flycheck-checkers 'checkstyle-java)
+(flycheck-add-next-checker 'lsp 'checkstyle-java)
 
 (load "~/.emacs.d/personal/zz-overrides")
