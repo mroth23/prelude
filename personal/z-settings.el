@@ -312,8 +312,8 @@
 (setq prelude-whitespace t)
 (setq prelude-clean-whitespace-on-save t)
 
-;; Mark lines exceeding 80 columns.
-(setq whitespace-line-column 80)
+;; Mark lines exceeding 120 columns.
+(setq whitespace-line-column 120)
 ;; Set whitespace style: cleanup empty lines / trailing whitespace, show whitespace characters.
 (setq whitespace-style '(empty trailing face lines-tail indentation::space tabs newline tab-mark newline-mark))
 ;; Use spaces instead of tabs by default.
@@ -461,6 +461,12 @@ The point should be inside the method to generate docs for"
       (senator-previous-tag)
       (crux-smart-open-line-above)
       (aya-expand))))
+
+(defun cc-end-line-with-semicolon ()
+  (interactive)
+  (move-end-of-line nil)
+  (insert-char ?\; 1)
+  (crux-smart-open-line nil))
 
 (use-package magit
   :ensure t
@@ -644,6 +650,7 @@ The point should be inside the method to generate docs for"
     java-mode) . lsp)
   :bind
   (:map lsp-mode-map
+        ("C-;" . cc-end-line-with-semicolon)
         ("C-c l j" . moo-javadoc)
         ("C-c l o" . lsp-organize-imports)
         ("C-c l r" . lsp-rename)

@@ -405,8 +405,8 @@ Use mood-line.
   (setq prelude-whitespace t)
   (setq prelude-clean-whitespace-on-save t)
 
-  ;; Mark lines exceeding 80 columns.
-  (setq whitespace-line-column 80)
+  ;; Mark lines exceeding 120 columns.
+  (setq whitespace-line-column 120)
   ;; Set whitespace style: cleanup empty lines / trailing whitespace, show whitespace characters.
   (setq whitespace-style '(empty trailing face lines-tail indentation::space tabs newline tab-mark newline-mark))
   ;; Use spaces instead of tabs by default.
@@ -566,6 +566,14 @@ Use mood-line.
         (senator-previous-tag)
         (crux-smart-open-line-above)
         (aya-expand))))
+
+  ;; Insert a semicolon at the end of the current line, then do crux-smart-open-line
+  (defun cc-end-line-with-semicolon ()
+    (interactive)
+    (move-end-of-line nil)
+    (insert-char ?\; 1)
+    (crux-smart-open-line nil))
+
 #+END_SRC
 ** magit
 Extra magit settings. I refresh the magit buffer on file save because it's
@@ -777,6 +785,7 @@ I use lsp-mode for language-server-protocol support.
       java-mode) . lsp)
     :bind
     (:map lsp-mode-map
+          ("C-;" . cc-end-line-with-semicolon)
           ("C-c l j" . moo-javadoc)
           ("C-c l o" . lsp-organize-imports)
           ("C-c l r" . lsp-rename)
