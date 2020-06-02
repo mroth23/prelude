@@ -314,28 +314,35 @@ A few useful global keybinds for functions I use occasionally.
 ** Modeline
 *** Nyan cat mode
 #+BEGIN_SRC emacs-lisp
-  (use-package nyan-mode
-    :ensure t
-    :config
-    (setq nyan-animate-nyancat t
-          nyan-wavy-trail t
-          nyan-bar-length 13))
+;; Currently disabed because it doesn't work with mood-line
+  ;; (use-package nyan-mode
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq nyan-animate-nyancat t
+  ;;         nyan-wavy-trail t
+  ;;         nyan-bar-length 13))
 
-  (nyan-mode 1)
+  ;; (nyan-mode 1)
 #+END_SRC
 
 *** Mode line
-Use spaceline (powerline) with emacs theme.
+Use mood-line.
 #+BEGIN_SRC emacs-lisp
-  (use-package spaceline
+  ;; (use-package spaceline
+  ;;   :ensure t
+  ;;   :config
+  ;;   (require 'spaceline-config)
+  ;;   (setq spaceline-buffer-encoding-abbrev-p nil)
+  ;;   (setq spaceline-line-column-p nil)
+  ;;   (setq spaceline-line-p nil)
+  ;;   (setq powerline-default-separator (quote arrow))
+  ;;   (spaceline-emacs-theme))
+
+  (use-package mood-line
     :ensure t
-    :config
-    (require 'spaceline-config)
-    (setq spaceline-buffer-encoding-abbrev-p nil)
-    (setq spaceline-line-column-p nil)
-    (setq spaceline-line-p nil)
-    (setq powerline-default-separator (quote arrow))
-    (spaceline-emacs-theme))
+    :config)
+
+  (mood-line-mode)
 #+END_SRC
 *** Clock and battery
 #+BEGIN_SRC emacs-lisp
@@ -359,11 +366,6 @@ Use spaceline (powerline) with emacs theme.
 #+BEGIN_SRC emacs-lisp
   (setq line-number-mode t)
   (setq column-number-mode t)
-  (spaceline-toggle-line-column-on)
-#+END_SRC
-*** Hide minor modes
-#+BEGIN_SRC emacs-lisp
-  (spaceline-toggle-minor-modes-off)
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
@@ -695,7 +697,6 @@ This section contains some global(ish) modes and shortcuts where settings are th
 #+BEGIN_SRC emacs-lisp
   ;; Global semantic mode
   (semantic-mode 1)
-  (global-semantic-stickyfunc-mode 1)
   (global-semantic-highlight-func-mode 1)
 
   ;; Enable subword-mode for all programming modes
@@ -732,6 +733,32 @@ This section contains some global(ish) modes and shortcuts where settings are th
   (global-set-key (kbd "C-:") 'me/eval-region-and-kill-mark)
   (global-set-key (kbd "M-n") 'move-text-down)
   (global-set-key (kbd "M-p") 'move-text-up)
+
+  ;; https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-mode
+  (defun push-mark-no-activate ()
+    "Pushes `point' to `mark-ring' and does not activate the region
+     Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+    (interactive)
+    (push-mark (point) t nil)
+    (message "Pushed mark to ring"))
+
+  (global-set-key (kbd "C-`") 'push-mark-no-activate)
+
+  (defun jump-to-mark ()
+    "Jumps to the local mark, respecting the `mark-ring' order.
+    This is the same as using \\[set-mark-command] with the prefix argument."
+    (interactive)
+    (set-mark-command 1))
+
+  (global-set-key (kbd "M-`") 'jump-to-mark)
+
+  (defun exchange-point-and-mark-no-activate ()
+    "Identical to \\[exchange-point-and-mark] but will not activate the region."
+    (interactive)
+    (exchange-point-and-mark)
+    (deactivate-mark nil))
+
+  (define-key global-map [remap exchange-point-and-mark] 'exchange-point-and-mark-no-activate)
 #+END_SRC
 * Major modes
 ** LSP
@@ -747,7 +774,6 @@ I use lsp-mode for language-server-protocol support.
     ((c++-mode
       c-mode
       objc-mode
-      python-mode
       java-mode) . lsp)
     :bind
     (:map lsp-mode-map
@@ -861,18 +887,19 @@ I use lsp-mode for language-server-protocol support.
   ;; yasnippet
   (add-hook 'python-mode-hook 'yas-minor-mode)
 
-  ;; Set tab with to 4.
-  (add-hook 'python-mode-hook
-            (lambda ()
-              (setq-default tab-width 4)))
-
-  ;; anaconda-mode: It's mostly set up in prelude already.
+  (use-package lsp-python-ms
+    :ensure t
+    :init (setq lsp-python-ms-auto-install-server t)
+    :hook (python-mode . (lambda ()
+                           (setq-default tab-width 4)
+                           (require 'lsp-python-ms)
+                           (lsp))))
 
   ;; virtualenvwrapper
   (use-package virtualenvwrapper
-    :defer t
     :hook python-mode
     :ensure t
+    :demand t
     :config
     ;; virtualenvwrapper init for eshell and interactive shell.
     (venv-initialize-interactive-shells) ;; if you want interactive shell support
@@ -892,9 +919,9 @@ I use lsp-mode for language-server-protocol support.
   ;; yapf
   (use-package yapfify
     :defer t
+    :ensure t
     :hook
-    (python-mode . yapf-mode)
-    :ensure t)
+    (python-mode . yapf-mode))
 #+END_SRC
 ** Org
 Basic settings (lifted again from Uncle Dave).
@@ -959,9 +986,6 @@ Convert a buffer and associated decorations to HTML.
           lsp-java-autobuild-enabled nil))
 
   (add-hook 'java-mode-hook '(lambda () (c-set-java-style)))
-
-  (use-package dap-java
-    :after (lsp-java))
 
   (defun c-set-java-style ()
     (interactive)

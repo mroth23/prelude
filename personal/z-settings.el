@@ -235,24 +235,31 @@
 ;; Bind avy-copy-line. Uses x d because it actually duplicates a line.
 (global-set-key (kbd "C-c x d") 'avy-copy-line)
 
-(use-package nyan-mode
-  :ensure t
-  :config
-  (setq nyan-animate-nyancat t
-        nyan-wavy-trail t
-        nyan-bar-length 13))
+;; Currently disabed because it doesn't work with mood-line
+  ;; (use-package nyan-mode
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq nyan-animate-nyancat t
+  ;;         nyan-wavy-trail t
+  ;;         nyan-bar-length 13))
 
-(nyan-mode 1)
+  ;; (nyan-mode 1)
 
-(use-package spaceline
+;; (use-package spaceline
+;;   :ensure t
+;;   :config
+;;   (require 'spaceline-config)
+;;   (setq spaceline-buffer-encoding-abbrev-p nil)
+;;   (setq spaceline-line-column-p nil)
+;;   (setq spaceline-line-p nil)
+;;   (setq powerline-default-separator (quote arrow))
+;;   (spaceline-emacs-theme))
+
+(use-package mood-line
   :ensure t
-  :config
-  (require 'spaceline-config)
-  (setq spaceline-buffer-encoding-abbrev-p nil)
-  (setq spaceline-line-column-p nil)
-  (setq spaceline-line-p nil)
-  (setq powerline-default-separator (quote arrow))
-  (spaceline-emacs-theme))
+  :config)
+
+(mood-line-mode)
 
 (setq display-time-24hr-format t)
 (setq display-time-format " %H:%M ")
@@ -272,9 +279,6 @@
 
 (setq line-number-mode t)
 (setq column-number-mode t)
-(spaceline-toggle-line-column-on)
-
-(spaceline-toggle-minor-modes-off)
 
 (use-package company
   :bind
@@ -564,7 +568,6 @@ The point should be inside the method to generate docs for"
 
 ;; Global semantic mode
 (semantic-mode 1)
-(global-semantic-stickyfunc-mode 1)
 (global-semantic-highlight-func-mode 1)
 
 ;; Enable subword-mode for all programming modes
@@ -602,6 +605,32 @@ The point should be inside the method to generate docs for"
 (global-set-key (kbd "M-n") 'move-text-down)
 (global-set-key (kbd "M-p") 'move-text-up)
 
+;; https://www.masteringemacs.org/article/fixing-mark-commands-transient-mark-mode
+(defun push-mark-no-activate ()
+  "Pushes `point' to `mark-ring' and does not activate the region
+   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+  (interactive)
+  (push-mark (point) t nil)
+  (message "Pushed mark to ring"))
+
+(global-set-key (kbd "C-`") 'push-mark-no-activate)
+
+(defun jump-to-mark ()
+  "Jumps to the local mark, respecting the `mark-ring' order.
+  This is the same as using \\[set-mark-command] with the prefix argument."
+  (interactive)
+  (set-mark-command 1))
+
+(global-set-key (kbd "M-`") 'jump-to-mark)
+
+(defun exchange-point-and-mark-no-activate ()
+  "Identical to \\[exchange-point-and-mark] but will not activate the region."
+  (interactive)
+  (exchange-point-and-mark)
+  (deactivate-mark nil))
+
+(define-key global-map [remap exchange-point-and-mark] 'exchange-point-and-mark-no-activate)
+
 (use-package helm-lsp
   :ensure t
   :commands helm-lsp-workspace-symbol)
@@ -612,7 +641,6 @@ The point should be inside the method to generate docs for"
   ((c++-mode
     c-mode
     objc-mode
-    python-mode
     java-mode) . lsp)
   :bind
   (:map lsp-mode-map
@@ -722,18 +750,19 @@ The point should be inside the method to generate docs for"
 ;; yasnippet
 (add-hook 'python-mode-hook 'yas-minor-mode)
 
-;; Set tab with to 4.
-(add-hook 'python-mode-hook
-          (lambda ()
-            (setq-default tab-width 4)))
-
-;; anaconda-mode: It's mostly set up in prelude already.
+(use-package lsp-python-ms
+  :ensure t
+  :init (setq lsp-python-ms-auto-install-server t)
+  :hook (python-mode . (lambda ()
+                         (setq-default tab-width 4)
+                         (require 'lsp-python-ms)
+                         (lsp))))
 
 ;; virtualenvwrapper
 (use-package virtualenvwrapper
-  :defer t
   :hook python-mode
   :ensure t
+  :demand t
   :config
   ;; virtualenvwrapper init for eshell and interactive shell.
   (venv-initialize-interactive-shells) ;; if you want interactive shell support
@@ -753,9 +782,9 @@ The point should be inside the method to generate docs for"
 ;; yapf
 (use-package yapfify
   :defer t
+  :ensure t
   :hook
-  (python-mode . yapf-mode)
-  :ensure t)
+  (python-mode . yapf-mode))
 
 (setq org-src-fontify-natively t
       org-src-tab-acts-natively t
@@ -806,9 +835,6 @@ The point should be inside the method to generate docs for"
         lsp-java-autobuild-enabled nil))
 
 (add-hook 'java-mode-hook '(lambda () (c-set-java-style)))
-
-(use-package dap-java
-  :after (lsp-java))
 
 (defun c-set-java-style ()
   (interactive)
